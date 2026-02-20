@@ -1,0 +1,18 @@
+Package: birdweatheR
+Title: Access the BirdWeather API from R
+Version: 0.0.1
+Authors@R: person("Brent Pease", email = "bpease1@siu.edu", role = c("aut", "cre"))
+Description: Provides functions to retrieve bird detection data, species 
+    information, and station data from the BirdWeather GraphQL API.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.1
+VignetteBuilder: knitr
+Imports:
+    data.table,
+    ghql,
+    jsonlite
+Suggests:
+    knitr,
+    rmarkdown
