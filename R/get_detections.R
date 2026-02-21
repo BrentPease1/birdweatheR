@@ -64,6 +64,10 @@ get_detections <- function(from           = NULL,
                                confidence_gte = NULL,
                                limit          = NULL) {
 
+  if (is.null(.birdweather_env$connection)) {
+    stop("No API connection found. Please run connect_birdweather() first.")
+  }
+
   # -------------------------------------------------------
   # Resolve species names to IDs if provided
   # -------------------------------------------------------

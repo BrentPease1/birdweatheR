@@ -31,6 +31,10 @@
 #' }
 get_species_info <- function(ids) {
 
+  if (is.null(.birdweather_env$connection)) {
+    stop("No API connection found. Please run connect_birdweather() first.")
+  }
+
   if (is.null(ids) || length(ids) == 0) {
     message("No species IDs provided.")
     return(data.table::data.table())

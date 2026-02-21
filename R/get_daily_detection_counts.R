@@ -38,6 +38,10 @@ get_daily_detection_counts <- function(from        = NULL,
                                        species_ids = NULL,
                                        by_species  = FALSE) {
 
+  if (is.null(.birdweather_env$connection)) {
+    stop("No API connection found. Please run connect_birdweather() first.")
+  }
+
   base_variables <- list()
 
   if (!is.null(from) && !is.null(to)) {

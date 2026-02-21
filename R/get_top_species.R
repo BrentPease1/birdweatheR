@@ -37,6 +37,10 @@ get_top_species <- function(limit        = 10,
                             station_ids  = NULL,
                             station_types = NULL) {
 
+  if (is.null(.birdweather_env$connection)) {
+    stop("No API connection found. Please run connect_birdweather() first.")
+  }
+
   base_variables <- list(limit = as.integer(limit))
 
   if (!is.null(from) && !is.null(to)) {

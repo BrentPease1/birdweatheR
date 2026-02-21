@@ -29,6 +29,10 @@ get_environment_data <- function(station_id = NULL,
                                  to         = NULL,
                                  limit      = NULL) {
 
+  if (is.null(.birdweather_env$connection)) {
+    stop("No API connection found. Please run connect_birdweather() first.")
+  }
+
   if (is.null(station_id)) {
     message("station_id is required for get_environment_data().")
     return(data.table::data.table())

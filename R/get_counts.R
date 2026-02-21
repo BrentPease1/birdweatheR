@@ -23,6 +23,10 @@ get_counts <- function(from        = NULL,
                        to          = NULL,
                        station_ids = NULL) {
 
+  if (is.null(.birdweather_env$connection)) {
+    stop("No API connection found. Please run connect_birdweather() first.")
+  }
+
   base_variables <- list()
 
   if (!is.null(from) && !is.null(to)) {

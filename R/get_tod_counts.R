@@ -32,6 +32,10 @@ get_tod_counts <- function(species_id     = NULL,
                            station_ids    = NULL,
                            confidence_gte = NULL) {
 
+  if (is.null(.birdweather_env$connection)) {
+    stop("No API connection found. Please run connect_birdweather() first.")
+  }
+
   if (is.null(species_id)) {
     message("species_id is required for get_tod_counts().")
     return(data.table::data.table())

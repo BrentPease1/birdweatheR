@@ -20,6 +20,10 @@
 #' }
 find_species <- function(query, limit = 10) {
 
+  if (is.null(.birdweather_env$connection)) {
+    stop("No API connection found. Please run connect_birdweather() first.")
+  }
+
   search_query <- '
     query searchSpecies($query: String, $first: Int) {
       searchSpecies(query: $query, first: $first) {
