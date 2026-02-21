@@ -1,6 +1,6 @@
 # birdweatheR
 
-The `birdweatheR` R package provides access to the [BirdWeather](https://birdweather.com) acoustic monitoring platform. Download and analyze bird detection data from BirdWeather stations worldwide.
+The `birdweatheR` R package provides access to the [BirdWeather](https://birdweather.com) bioacoustic community-science platform. Download and analyze bird vocalization detections from BirdWeather stations worldwide.
 
 ## Installation
 
@@ -26,7 +26,7 @@ connect_birdweather()
 
 ### `find_species()`
 
-Search for species by common or scientific name. Useful for exploring what species exist in the BirdWeather database and finding species IDs before pulling detections.
+Search for species by common or scientific name. Useful for exploring which species exist in the BirdWeather database and finding species IDs before pulling detections.
 
 ```r
 # Search by common name
@@ -88,8 +88,8 @@ detections <- get_detections(
 |---|---|
 | `id` | Detection ID |
 | `timestamp` | Detection timestamp in station timezone |
-| `confidence` | Model confidence |
-| `score` | Calculated score |
+| `confidence` | BirdNET confidence |
+| `score` | Calculated identification likelihood score |
 | `species_id` | Species ID |
 | `common_name` | Species common name |
 | `scientific_name` | Species scientific name |
@@ -197,6 +197,62 @@ robin_tod <- get_tod_counts(
 ```
 
 ---
+
+## BirdWeather PUC Sensors
+
+BirdWeather PUCs are an AI powered bioacoustics platform with dual onboard microphones, WiFi/BLE, GPS, environmental sensors, and a built-in neural engine, all in a weatherproof enclosure. The following functions allow users to extract and annotate their bird vocalization data with environmental and light conditions.
+
+## `get_environment_data()`
+
+Retrieves environmental sensor readings from a BirdWeather PUC station. Readings are logged approximately every 42 seconds and include temperature, humidity, barometric pressure, air quality, eCO2, VOC, and sound pressure level.
+
+```r
+env <- get_environment_data(
+  station_id = "1733",
+  from       = "2025-05-01T00:00:00.000Z",
+  to         = "2025-05-02T00:00:00.000Z"
+)
+```
+
+#### Returned columns
+
+| Column | Description |
+|---|---|
+| `station_id` | Station ID |
+| `timestamp` | Reading timestamp |
+| `temperature` | Temperature |
+| `humidity` | Relative humidity |
+| `barometric_pressure` | Barometric pressure |
+| `aqi` | Air quality index |
+| `eco2` | Equivalent CO2 |
+| `voc` | Volatile organic compounds |
+| `sound_pressure_level` | Ambient sound pressure level |
+
+---
+
+### `get_light_data()`
+
+Retrieves spectral light sensor readings from a BirdWeather PUC station. Includes 8 spectral channels (f1-f8), broadband clear light, and near-infrared. Useful for studying light availability and phenology alongside bird activity.
+
+```r
+light <- get_light_data(
+  station_id = "1733",
+  from       = "2025-05-01T00:00:00.000Z",
+  to         = "2025-05-02T00:00:00.000Z"
+)
+```
+
+#### Returned columns
+
+| Column | Description |
+|---|---|
+| `station_id` | Station ID |
+| `timestamp` | Reading timestamp |
+| `clear` | Broadband clear light |
+| `nir` | Near-infrared |
+| `f1` - `f8` | Spectral channels |
+
+--
 
 ## Citation
 
