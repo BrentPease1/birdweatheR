@@ -13,17 +13,27 @@
 #' @param species_ids Character vector of species IDs to filter on (optional)
 #' @param species_names Character vector of species common or scientific names
 #'   to filter on (optional). Will be resolved to IDs via find_species().
-#'   If a name matches multiple species, the first result is used and all
-#'   matches are printed so the user can refine if needed.
+#'   If a name matches multiple species, all matches are printed and the
+#'   user is prompted to rerun with a more specific name.
 #' @param continents Character vector of continents to filter on (optional)
 #' @param countries Character vector of countries to filter on (optional)
 #' @param confidence_gte Minimum confidence threshold as a float (optional)
-#' @param limit Maximum total number of detections to return (default: 500).
-#'   Set higher for large pulls. Each page fetches 250 at a time.
+#' @param ne Named list with lat and lon defining the north-east corner of a
+#'   bounding box (optional). Must be used together with sw.
+#'   Example: list(lat = 42.0, lon = -85.0)
+#' @param sw Named list with lat and lon defining the south-west corner of a
+#'   bounding box (optional). Must be used together with ne.
+#'   Example: list(lat = 36.0, lon = -96.0)
+#' @param limit Maximum total number of detections to return (default: NULL,
+#'   returns all matching detections). Each page fetches 250 at a time.
+#'   Set to a specific number for exploratory pulls.
+#' @param station_types Character vector of station types to filter on (optional).
+#'   Known types include "puc" (BirdWeather PUC units), "birdnetpi"
+#'   (Raspberry Pi-based stations), and "app" (mobile app detections).
+#'
 #'
 #' @return A flat data.table where each row is one detection with columns:
 #'   id, timestamp, confidence, score,
-#'   det_lat, det_lon,
 #'   species_id, common_name, scientific_name,
 #'   station_id, station_name, station_type, station_timezone,
 #'   station_country, station_continent, station_state, station_location,
@@ -33,36 +43,53 @@
 #'
 #' @examples
 #' \dontrun{
+#' connect_birdweather()
+#'
 #' # Get detections for a date range
-#' dets <- bw_get_detections(
-#'   from = "2025-01-01T00:00:00.000Z",
-#'   to   = "2025-01-02T00:00:00.000Z"
+#' dets <- get_detections(
+#'   from  = "2025-01-01T00:00:00.000Z",
+#'   to    = "2025-01-02T00:00:00.000Z",
+#'   limit = 1000
 #' )
 #'
 #' # Filter by species name
-#' dets <- bw_get_detections(
+#' dets <- get_detections(
 #'   from          = "2025-01-01T00:00:00.000Z",
 #'   to            = "2025-01-02T00:00:00.000Z",
-#'   species_names = "Black-capped Chickadee"
+#'   species_names = "Black-capped Chickadee",
+#'   limit         = 1000
 #' )
 #'
 #' # Filter by continent with confidence threshold
-#' dets <- bw_get_detections(
+#' dets <- get_detections(
 #'   from           = "2025-01-01T00:00:00.000Z",
 #'   to             = "2025-01-02T00:00:00.000Z",
 #'   continents     = "North America",
-#'   confidence_gte = 0.9
+#'   confidence_gte = 0.9,
+#'   limit          = 1000
+#' )
+#'
+#' # Filter by bounding box (Missouri/Illinois/Kentucky region)
+#' dets <- get_detections(
+#'   from  = "2025-05-12T00:00:00.000Z",
+#'   to    = "2025-05-18T00:00:00.000Z",
+#'   ne    = list(lat = 42.0, lon = -85.0),
+#'   sw    = list(lat = 36.0, lon = -96.0),
+#'   limit = 10000
 #' )
 #' }
 get_detections <- function(from           = NULL,
-                               to             = NULL,
-                               station_ids    = NULL,
-                               species_ids    = NULL,
-                               species_names  = NULL,
-                               continents     = NULL,
-                               countries      = NULL,
-                               confidence_gte = NULL,
-                               limit          = NULL) {
+                           to             = NULL,
+                           station_ids    = NULL,
+                           station_types  = NULL,
+                           species_ids    = NULL,
+                           species_names  = NULL,
+                           continents     = NULL,
+                           countries      = NULL,
+                           confidence_gte = NULL,
+                           ne             = NULL,
+                           sw             = NULL,
+                           limit          = NULL) {
 
   if (is.null(.birdweather_env$connection)) {
     stop("No API connection found. Please run connect_birdweather() first.")
@@ -98,7 +125,6 @@ get_detections <- function(from           = NULL,
 
     looked_up <- looked_up[!sapply(looked_up, is.null)]
 
-    # If all names were ambiguous or unmatched, stop early
     if (length(looked_up) == 0) {
       message("No species could be resolved. Returning empty result.")
       return(data.table::data.table())
@@ -121,6 +147,9 @@ get_detections <- function(from           = NULL,
   if (!is.null(continents))     base_variables$continents    <- as.list(continents)
   if (!is.null(countries))      base_variables$countries     <- as.list(countries)
   if (!is.null(confidence_gte)) base_variables$confidenceGte <- confidence_gte
+  if (!is.null(ne))             base_variables$ne            <- list(lat = ne$lat, lon = ne$lon)
+  if (!is.null(sw))             base_variables$sw            <- list(lat = sw$lat, lon = sw$lon)
+  if (!is.null(station_types)) base_variables$stationTypes <- as.list(station_types)
 
   # -------------------------------------------------------
   # Build query string dynamically from active variables
@@ -130,20 +159,26 @@ get_detections <- function(from           = NULL,
     first         = "$first: Int",
     period        = "$period: InputDuration",
     stationIds    = "$stationIds: [ID!]",
+    stationTypes  = "$stationTypes: [String!]",
     speciesIds    = "$speciesIds: [ID!]",
     continents    = "$continents: [String!]",
     countries     = "$countries: [String!]",
-    confidenceGte = "$confidenceGte: Float"
+    confidenceGte = "$confidenceGte: Float",
+    ne            = "$ne: InputLocation",
+    sw            = "$sw: InputLocation"
   )
 
   arg_names <- c(
     first         = "first: $first",
     period        = "period: $period",
     stationIds    = "stationIds: $stationIds",
+    stationTypes  = "stationTypes: $stationTypes",
     speciesIds    = "speciesIds: $speciesIds",
     continents    = "continents: $continents",
     countries     = "countries: $countries",
-    confidenceGte = "confidenceGte: $confidenceGte"
+    confidenceGte = "confidenceGte: $confidenceGte",
+    ne            = "ne: $ne",
+    sw            = "sw: $sw"
   )
 
   active             <- names(var_types)[names(var_types) %in% names(base_variables)]
@@ -188,7 +223,8 @@ get_detections <- function(from           = NULL,
   # Execute first page
   # -------------------------------------------------------
   query_exec <- ghql::Query$new()$query('url_link', initial_query)
-  result <-.birdweather_env$connection$exec(query_exec$url_link, variables = base_variables) |>
+  result <- .birdweather_env$connection$exec(query_exec$url_link,
+                                             variables = base_variables) |>
     jsonlite::fromJSON(flatten = FALSE)
 
   if (!is.null(result$errors)) {
@@ -238,7 +274,8 @@ get_detections <- function(from           = NULL,
     )
 
     query_exec <- ghql::Query$new()$query('url_link', following_query)
-    result <-.birdweather_env$connection$exec(query_exec$url_link, variables = page_variables) |>
+    result <- .birdweather_env$connection$exec(query_exec$url_link,
+                                               variables = page_variables) |>
       jsonlite::fromJSON(flatten = FALSE)
 
     if (!is.null(result$errors)) {
