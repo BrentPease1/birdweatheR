@@ -8,11 +8,14 @@ get_detections(
   from = NULL,
   to = NULL,
   station_ids = NULL,
+  station_types = NULL,
   species_ids = NULL,
   species_names = NULL,
   continents = NULL,
   countries = NULL,
   confidence_gte = NULL,
+  ne = NULL,
+  sw = NULL,
   limit = NULL
 )
 }
@@ -25,12 +28,16 @@ get_detections(
 
 \item{station_ids}{Character vector of station IDs to filter on (optional)}
 
+\item{station_types}{Character vector of station types to filter on (optional).
+Known types include "puc" (BirdWeather PUC units), "birdnetpi"
+(Raspberry Pi-based stations), and "app" (mobile app detections).}
+
 \item{species_ids}{Character vector of species IDs to filter on (optional)}
 
 \item{species_names}{Character vector of species common or scientific names
 to filter on (optional). Will be resolved to IDs via find_species().
-If a name matches multiple species, the first result is used and all
-matches are printed so the user can refine if needed.}
+If a name matches multiple species, all matches are printed and the
+user is prompted to rerun with a more specific name.}
 
 \item{continents}{Character vector of continents to filter on (optional)}
 
@@ -38,13 +45,21 @@ matches are printed so the user can refine if needed.}
 
 \item{confidence_gte}{Minimum confidence threshold as a float (optional)}
 
-\item{limit}{Maximum total number of detections to return (default: 500).
-Set higher for large pulls. Each page fetches 250 at a time.}
+\item{ne}{Named list with lat and lon defining the north-east corner of a
+bounding box (optional). Must be used together with sw.
+Example: list(lat = 42.0, lon = -85.0)}
+
+\item{sw}{Named list with lat and lon defining the south-west corner of a
+bounding box (optional). Must be used together with ne.
+Example: list(lat = 36.0, lon = -96.0)}
+
+\item{limit}{Maximum total number of detections to return (default: NULL,
+returns all matching detections). Each page fetches 250 at a time.
+Set to a specific number for exploratory pulls.}
 }
 \value{
 A flat data.table where each row is one detection with columns:
 id, timestamp, confidence, score,
-det_lat, det_lon,
 species_id, common_name, scientific_name,
 station_id, station_name, station_type, station_timezone,
 station_country, station_continent, station_state, station_location,
@@ -58,25 +73,39 @@ into individual columns.
 }
 \examples{
 \dontrun{
+connect_birdweather()
+
 # Get detections for a date range
-dets <- bw_get_detections(
-  from = "2025-01-01T00:00:00.000Z",
-  to   = "2025-01-02T00:00:00.000Z"
+dets <- get_detections(
+  from  = "2025-01-01T00:00:00.000Z",
+  to    = "2025-01-02T00:00:00.000Z",
+  limit = 1000
 )
 
 # Filter by species name
-dets <- bw_get_detections(
+dets <- get_detections(
   from          = "2025-01-01T00:00:00.000Z",
   to            = "2025-01-02T00:00:00.000Z",
-  species_names = "Black-capped Chickadee"
+  species_names = "Black-capped Chickadee",
+  limit         = 1000
 )
 
 # Filter by continent with confidence threshold
-dets <- bw_get_detections(
+dets <- get_detections(
   from           = "2025-01-01T00:00:00.000Z",
   to             = "2025-01-02T00:00:00.000Z",
   continents     = "North America",
-  confidence_gte = 0.9
+  confidence_gte = 0.9,
+  limit          = 1000
+)
+
+# Filter by bounding box (Missouri/Illinois/Kentucky region)
+dets <- get_detections(
+  from  = "2025-05-12T00:00:00.000Z",
+  to    = "2025-05-18T00:00:00.000Z",
+  ne    = list(lat = 42.0, lon = -85.0),
+  sw    = list(lat = 36.0, lon = -96.0),
+  limit = 10000
 )
 }
 }
