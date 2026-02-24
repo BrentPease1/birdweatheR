@@ -102,7 +102,6 @@ get_stations <- function(query = NULL,
             country
             continent
             state
-            location
             locationPrivacy
             coords { lat lon }
           }
@@ -127,7 +126,6 @@ get_stations <- function(query = NULL,
       station_country  = nodes$country,
       station_continent= nodes$continent,
       station_state    = nodes$state,
-      station_location = nodes$location,
       station_lat      = nodes$coords$lat,
       station_lon      = nodes$coords$lon,
       location_privacy = nodes$locationPrivacy
