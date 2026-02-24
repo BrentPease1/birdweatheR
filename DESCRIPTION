@@ -1,9 +1,11 @@
 Package: birdweatheR
 Title: Access the BirdWeather API from R
 Version: 0.0.1
-Authors@R: person("Brent Pease", email = "bpease1@siu.edu", role = c("aut", "cre"))
+Date: 2026-02-16
+Authors@R: person("Brent S. Pease", email = "bpease1@siu.edu", role = c("aut", "cre"))
 Description: Provides functions to retrieve bird detection data, species 
     information, and station data from the BirdWeather GraphQL API.
+URL: https://birdweather.com/
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
