@@ -10,6 +10,9 @@
 #' @param to End datetime as a string in ISO8601 format
 #'   (e.g. "2025-01-02T00:00:00.000Z"). Defaults to now if NULL.
 #' @param station_ids Character vector of station IDs to filter on (optional)
+#' @param station_types Character vector of station types to filter on (optional).
+#'   Known types include "puc" (BirdWeather PUC units), "birdnetpi"
+#'   (Raspberry Pi-based stations), and "app" (mobile app detections).
 #' @param species_ids Character vector of species IDs to filter on (optional)
 #' @param species_names Character vector of species common or scientific names
 #'   to filter on (optional). Will be resolved to IDs via find_species().
@@ -27,9 +30,6 @@
 #' @param limit Maximum total number of detections to return (default: NULL,
 #'   returns all matching detections). Each page fetches 250 at a time.
 #'   Set to a specific number for exploratory pulls.
-#' @param station_types Character vector of station types to filter on (optional).
-#'   Known types include "puc" (BirdWeather PUC units), "birdnetpi"
-#'   (Raspberry Pi-based stations), and "app" (mobile app detections).
 #'
 #'
 #' @return A flat data.table where each row is one detection with columns:
@@ -201,7 +201,6 @@ get_detections <- function(from           = NULL,
             timestamp
             confidence
             score
-            coords { lat lon }
             species { id commonName scientificName }
             station {
               id name type timezone
