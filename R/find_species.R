@@ -6,7 +6,7 @@
 #'
 #' @param query A search string — common name, scientific name, or partial
 #'   match (e.g. "chickadee", "Poecile", "Black-capped")
-#' @param limit Maximum number of results to return (default: 10)
+#' @param limit Maximum number of results to return (default: 20)
 #'
 #' @return A data.table with columns: species_id, common_name, scientific_name
 #' @export
@@ -18,7 +18,7 @@
 #' bw_find_species("Poecile atricapillus")
 #' bw_find_species("quail", limit = 20)
 #' }
-find_species <- function(query, limit = 10) {
+find_species <- function(query, limit = 20) {
 
   if (is.null(.birdweather_env$connection)) {
     stop("No API connection found. Please run connect_birdweather() first.")
@@ -62,9 +62,9 @@ find_species <- function(query, limit = 10) {
     return(data.table::data.table())
   }
 
-  if(length(nodes) > 10){
-    message("More than 10 species matcn your query. Displaying first 10.
-            Use the `limit` argument to allow more returns (e.g., limit = 25")
+  if(length(nodes) > 20){
+    message("More than 20 species match your query. Displaying first 20
+            Use the `limit` argument to allow more returns (e.g., limit = 30")
   }
 
   dt <- data.table::as.data.table(nodes)
