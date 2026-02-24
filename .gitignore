@@ -7,3 +7,5 @@
 .Renviron
 *.Rproj
 inst/doc
+/doc/
+/Meta/
