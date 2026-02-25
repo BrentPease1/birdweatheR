@@ -7,29 +7,39 @@
 get_light_data(station_id = NULL, from = NULL, to = NULL, limit = NULL)
 }
 \arguments{
-\item{station_id}{A single station ID (required)}
+\item{station_id}{A single station ID or character vector of station IDs (required)}
 
 \item{from}{Start datetime in ISO8601 format (e.g. "2025-01-01T00:00:00.000Z")}
 
 \item{to}{End datetime in ISO8601 format (e.g. "2025-01-02T00:00:00.000Z")}
 
-\item{limit}{Maximum number of readings to return (default: NULL, returns all)}
+\item{limit}{Maximum number of readings to return per station (default: NULL,
+returns all). When multiple station IDs are provided, limit applies to each
+station individually.}
 }
 \value{
 A data.table with columns:
 station_id, timestamp, clear, nir, f1, f2, f3, f4, f5, f6, f7, f8
 }
 \description{
-Retrieves spectral light sensor readings from a BirdWeather PUC station.
-Includes 8 spectral channels (f1-f8), clear light, and near-infrared.
-Handles pagination automatically.
+Retrieves spectral light sensor readings from one or more BirdWeather PUC
+stations. Includes 8 spectral channels (f1-f8), clear light, and
+near-infrared. Handles pagination automatically.
 }
 \examples{
 \dontrun{
 connect_birdweather()
 
+# Single station
 light <- get_light_data(
   station_id = "1733",
+  from       = "2025-05-01T00:00:00.000Z",
+  to         = "2025-05-02T00:00:00.000Z"
+)
+
+# Multiple stations - same time window
+light <- get_light_data(
+  station_id = c("1733", "2522", "8947"),
   from       = "2025-05-01T00:00:00.000Z",
   to         = "2025-05-02T00:00:00.000Z"
 )

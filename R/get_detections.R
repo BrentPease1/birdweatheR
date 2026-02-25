@@ -35,7 +35,7 @@
 #' @return A flat data.table where each row is one detection with columns:
 #'   id, timestamp, confidence, score,
 #'   species_id, common_name, scientific_name,
-#'   station_id, station_name, station_type, station_timezone,
+#'   station_id, station_name, station_type,
 #'   station_country, station_continent, station_state, station_location,
 #'   station_lat, station_lon
 #' @export
@@ -93,6 +93,16 @@ get_detections <- function(from           = NULL,
 
   if (is.null(.birdweather_env$connection)) {
     stop("No API connection found. Please run connect_birdweather() first.")
+  }
+
+  # Validate date format
+  if (!is.null(from) && !grepl("^\\d{4}-\\d{2}-\\d{2}T", from)) {
+    stop("'from' must be in ISO8601 format with zero-padded month and day ",
+         "(e.g. '2025-05-01T00:00:00.000Z'). Got: ", from)
+  }
+  if (!is.null(to) && !grepl("^\\d{4}-\\d{2}-\\d{2}T", to)) {
+    stop("'to' must be in ISO8601 format with zero-padded month and day ",
+         "(e.g. '2025-05-07T00:00:00.000Z'). Got: ", to)
   }
 
   # -------------------------------------------------------
@@ -203,7 +213,7 @@ get_detections <- function(from           = NULL,
             score
             species { id commonName scientificName }
             station {
-              id name type timezone
+              id name type
               country continent state location
               coords { lat lon }
             }

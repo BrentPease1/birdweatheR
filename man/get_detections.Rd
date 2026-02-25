@@ -61,7 +61,7 @@ Set to a specific number for exploratory pulls.}
 A flat data.table where each row is one detection with columns:
 id, timestamp, confidence, score,
 species_id, common_name, scientific_name,
-station_id, station_name, station_type, station_timezone,
+station_id, station_name, station_type,
 station_country, station_continent, station_state, station_location,
 station_lat, station_lon
 }
