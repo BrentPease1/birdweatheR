@@ -1,7 +1,6 @@
 # helpers.R
 # Shared utility functions for the birdweather package.
 # These are internal helpers not exported to the user.
-
 #' Flatten a page of detection nodes into a clean data.table
 #'
 #' Takes the raw nested data frame returned by fromJSON for a page of
@@ -10,7 +9,7 @@
 #' empty strings are converted to NA consistently.
 #'
 #' @param nodes A data frame of detection nodes as returned by fromJSON
-#' @return A flat data.table with 19 columns
+#' @return A flat data.table with 20 columns
 #' @noRd
 flatten_nodes <- function(nodes) {
   data.table::data.table(
@@ -23,6 +22,7 @@ flatten_nodes <- function(nodes) {
     species_id        = nodes$species$id,
     common_name       = nodes$species$commonName,
     scientific_name   = nodes$species$scientificName,
+    classification    = nodes$species$classification,
     station_id        = nodes$station$id,
     station_name      = nodes$station$name,
     station_type      = nodes$station$type,

@@ -34,7 +34,7 @@
 #'
 #' @return A flat data.table where each row is one detection with columns:
 #'   id, timestamp, confidence, score,
-#'   species_id, common_name, scientific_name,
+#'   species_id, common_name, scientific_name, classification,
 #'   station_id, station_name, station_type,
 #'   station_country, station_continent, station_state, station_location,
 #'   station_lat, station_lon
@@ -211,7 +211,7 @@ get_detections <- function(from           = NULL,
             timestamp
             confidence
             score
-            species { id commonName scientificName }
+            species { id commonName scientificName classification }
             station {
               id name type
               country continent state location
