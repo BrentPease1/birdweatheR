@@ -13,6 +13,11 @@ devtools::install_github("BrentPease1/birdweatheR")
 
 ## Getting Started
 
+## Getting Started
+
+For a full introduction with worked examples, see the 
+[Getting Started vignette](https://github.com/BrentPease1/birdweatheR/blob/main/vignettes/getting-started.Rmd).
+
 ```r
 library(birdweatheR)
 
