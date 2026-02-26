@@ -1,37 +1,138 @@
 # birdweatheR
 
-The `birdweatheR` R package provides access to the [BirdWeather](https://birdweather.com) bioacoustic community-science platform. Download and analyze bird vocalization detections from BirdWeather stations worldwide.
+The `birdweatheR` R package provides access to the [BirdWeather](https://birdweather.com) bioacoustic community-science platform. As of February 2026, the BirdWeather network comprises over 18,000 stations across six continents, collectively generating tens of millions of detections per month — and over 2 billion detections in total. Download and analyze bird vocalization detections from BirdWeather stations worldwide, pair them with on-board environmental and light sensor data, and study everything from migration phenology to behavioral responses to weather events and solar eclipses.
 
 ## Installation
 
 You can install the development version of birdweatheR from GitHub:
 
-``` r
+```r
 # install.packages("devtools")
 devtools::install_github("BrentPease1/birdweatheR")
 ```
 
 ## Getting Started
 
-## Getting Started
-
-For a full introduction with worked examples, see the 
-[Getting Started vignette](https://github.com/BrentPease1/birdweatheR/blob/main/vignettes/getting-started.Rmd).
+For a full introduction with worked examples — including migration phenology, weather events, and the 2024 total solar eclipse — see the [Getting Started vignette](https://github.com/BrentPease1/birdweatheR/blob/main/vignettes/getting-started.Rmd).
 
 ```r
 library(birdweatheR)
 
-# Establish connection to the BirdWeather API - required once per session
+# Establish connection to the BirdWeather API — required once per session
+# No API key needed
 connect_birdweather()
+```
+
+The connection is stored internally and used automatically by all downstream functions.
+
+---
+
+## Workflow Overview
+
+A typical session follows this pattern:
+
+```r
+library(birdweatheR)
+
+# 1. Connect
+connect_birdweather()
+
+# 2. Explore the platform
+get_counts(from = "2025-05-01T00:00:00.000Z", to = "2025-05-02T00:00:00.000Z")
+get_top_species(from = "2025-05-01T00:00:00.000Z", to = "2025-05-02T00:00:00.000Z")
+
+# 3. Find stations and species of interest
+stations <- get_stations(limit = 100)
+find_species("Wood Thrush")
+
+# 4. Pull summary counts or raw detections
+daily <- get_daily_detection_counts(
+  from = "2025-05-01T00:00:00.000Z",
+  to   = "2025-05-31T00:00:00.000Z"
+)
+
+detections <- get_detections(
+  from           = "2025-05-01T00:00:00.000Z",
+  to             = "2025-05-31T00:00:00.000Z",
+  species_names  = "Wood Thrush",
+  confidence_gte = 0.6
+)
+
+# 5. For PUC stations, enrich with sensor data
+env   <- get_environment_data(station_id = "1733", from = "2025-05-01T00:00:00.000Z", to = "2025-05-02T00:00:00.000Z")
+light <- get_light_data(station_id = "1733", from = "2025-05-01T00:00:00.000Z", to = "2025-05-02T00:00:00.000Z")
 ```
 
 ---
 
 ## Functions
 
+### `connect_birdweather()`
+
+Establishes a connection to the BirdWeather API. Must be called once per session before using any other function. No API key required.
+
+```r
+connect_birdweather()
+```
+
+---
+
+### `get_counts()`
+
+Returns a single-row summary snapshot of detections, species, and stations for a given time period. Useful for a quick sense of the platform's scale.
+
+```r
+get_counts(
+  from = "2025-05-01T00:00:00.000Z",
+  to   = "2025-05-02T00:00:00.000Z"
+)
+```
+
+---
+
+### `get_top_species()`
+
+Returns the most frequently detected species for a given time period, ranked by total detection count. Includes a certainty breakdown (almost certain, very likely, unlikely, uncertain).
+
+```r
+# Top 10 species (default)
+get_top_species(
+  from = "2025-05-01T00:00:00.000Z",
+  to   = "2025-05-02T00:00:00.000Z"
+)
+
+# Top 25 species
+get_top_species(
+  limit = 25,
+  from  = "2025-05-01T00:00:00.000Z",
+  to    = "2025-05-02T00:00:00.000Z"
+)
+```
+
+---
+
+### `get_stations()`
+
+Retrieves the BirdWeather station network with coordinates, country, timezone, and station type. Useful for identifying stations in a region of interest before pulling detections. Supports filtering by bounding box and time period.
+
+```r
+# Pull the first 100 stations
+stations <- get_stations(limit = 100)
+
+# Stations within a bounding box during a time period
+midwest_stations <- get_stations(
+  from = "2025-05-01T00:00:00.000Z",
+  to   = "2025-05-02T00:00:00.000Z",
+  ne   = list(lat = 49.0, lon = -80.0),
+  sw   = list(lat = 36.0, lon = -97.0)
+)
+```
+
+---
+
 ### `find_species()`
 
-Search for species by common or scientific name. Useful for exploring which species exist in the BirdWeather database and finding species IDs before pulling detections.
+Search for species by common or scientific name. Supports partial matches and wildcards. Useful for exploring the BirdWeather species database and retrieving species IDs before pulling detections.
 
 ```r
 # Search by common name
@@ -40,7 +141,7 @@ find_species("chickadee")
 # Search by scientific name
 find_species("Poecile")
 
-# Use a wildcard for partial matches
+# Wildcard for partial matches
 find_species("whip*")
 ```
 
@@ -48,7 +149,9 @@ find_species("whip*")
 
 ### `get_detections()`
 
-Retrieve bird detections from the BirdWeather API with optional filters. Handles pagination automatically and returns a flat `data.table` with detection, species, and station information.
+The core data retrieval function. Downloads raw bird detections from the BirdWeather API with flexible filtering options. Handles pagination automatically and returns a flat `data.table` with detection, species, and station information.
+
+Filters available: date range, station IDs, station types, species names or IDs, continents, countries, BirdNET confidence threshold, bounding box, and download limit.
 
 ```r
 # Get detections for a date range
@@ -58,8 +161,7 @@ detections <- get_detections(
   limit = 1000
 )
 
-# Filter by species name - if multiple matches are found, all are shown
-# and the user is prompted to rerun with a more specific name
+# Filter by species name
 detections <- get_detections(
   from          = "2025-05-01T00:00:00.000Z",
   to            = "2025-05-02T00:00:00.000Z",
@@ -106,46 +208,13 @@ detections <- get_detections(
 | `station_continent` | Continent |
 | `station_state` | State / province |
 | `station_lat`, `station_lon` | Station coordinates |
-
----
-
-### `get_counts()`
-
-Returns a single-row summary snapshot of detections, species, and stations for a given time period.
-
-```r
-get_counts(
-  from = "2025-05-01T00:00:00.000Z",
-  to   = "2025-05-02T00:00:00.000Z"
-)
-```
-
----
-
-### `get_top_species()`
-
-Returns the most frequently detected species for a given time period, ranked by total detection count. Includes a certainty breakdown.
-
-```r
-# Top 10 species (default)
-get_top_species(
-  from = "2025-05-01T00:00:00.000Z",
-  to   = "2025-05-02T00:00:00.000Z"
-)
-
-# Top 25 species
-get_top_species(
-  limit = 25,
-  from  = "2025-05-01T00:00:00.000Z",
-  to    = "2025-05-02T00:00:00.000Z"
-)
-```
+| `location_privacy` | Fuzzy lat/lons |
 
 ---
 
 ### `get_daily_detection_counts()`
 
-Returns daily detection counts for a given time period. By default returns one row per day with total detections. Optionally returns a species-level breakdown.
+Returns daily detection counts for a given time period. By default returns one row per day with total detections. Optionally returns a species-level breakdown. Also supports filtering by station IDs or species IDs.
 
 ```r
 # Daily totals
@@ -154,7 +223,7 @@ daily <- get_daily_detection_counts(
   to   = "2025-05-07T00:00:00.000Z"
 )
 
-# Species-level breakdown - one row per species per day
+# Species-level breakdown — one row per species per day
 daily <- get_daily_detection_counts(
   from       = "2025-05-01T00:00:00.000Z",
   to         = "2025-05-07T00:00:00.000Z",
@@ -166,7 +235,7 @@ daily <- get_daily_detection_counts(
 
 ### `get_species_info()`
 
-Retrieves species information for a vector of species IDs. Most useful for joining readable names onto output from `get_daily_detection_counts(by_species = TRUE)`.
+Retrieves species information (common name, scientific name) for a vector of species IDs. Most useful for joining readable names onto output from `get_daily_detection_counts(by_species = TRUE)`.
 
 ```r
 # Look up specific species
@@ -190,14 +259,16 @@ daily[species_info, on = .(speciesId = species_id),
 
 ### `get_tod_counts()`
 
-Returns detection counts binned by time of day (30-minute intervals) for a given species. Useful for visualizing daily activity patterns like dawn chorus or nocturnal behavior.
+Returns detection counts binned by time of day (30-minute intervals) for a given species. Useful for visualizing diel activity patterns such as the dawn chorus or nocturnal behavior.
 
 ```r
-# American Robin time of day activity
+# American Robin time-of-day activity
+robin_id  <- find_species("American Robin")$species_id
+
 robin_tod <- get_tod_counts(
-  species_id = "123",
+  species_id = robin_id,
   from       = "2025-05-01T00:00:00.000Z",
-  to         = "2025-05-07T00:00:00.000Z"
+  to         = "2025-05-31T00:00:00.000Z"
 )
 ```
 
@@ -205,9 +276,11 @@ robin_tod <- get_tod_counts(
 
 ## BirdWeather PUC Sensors
 
-BirdWeather PUCs are an AI powered bioacoustics platform with dual onboard microphones, WiFi/BLE, GPS, environmental sensors, and a built-in neural engine, all in a weatherproof enclosure. The following functions allow users to extract and annotate their bird vocalization data with environmental and light conditions.
+[BirdWeather PUC](https://www.birdweather.com/shop-birdweather-puc) units are an AI-powered bioacoustics platform with dual onboard microphones, WiFi/BLE, GPS, environmental sensors, and a built-in neural engine, all in a weatherproof enclosure. The following functions let you extract and analyze environmental and light data alongside bird detections, enabling research into behavioral responses to weather events, light pollution, astronomical events, and more.
 
-## `get_environment_data()`
+---
+
+### `get_environment_data()`
 
 Retrieves environmental sensor readings from a BirdWeather PUC station. Readings are logged approximately every 42 seconds and include temperature, humidity, barometric pressure, air quality, eCO2, VOC, and sound pressure level.
 
@@ -237,7 +310,7 @@ env <- get_environment_data(
 
 ### `get_light_data()`
 
-Retrieves spectral light sensor readings from a BirdWeather PUC station. Includes 8 spectral channels (f1-f8), broadband clear light, and near-infrared. Useful for studying light availability and phenology alongside bird activity.
+Retrieves spectral light sensor readings from a BirdWeather PUC station. Includes 8 spectral channels (f1–f8), broadband clear light, and near-infrared. Useful for studying light availability and phenology alongside bird activity — including responses to astronomical events like solar eclipses.
 
 ```r
 light <- get_light_data(
@@ -255,9 +328,9 @@ light <- get_light_data(
 | `timestamp` | Reading timestamp |
 | `clear` | Broadband clear light |
 | `nir` | Near-infrared |
-| `f1` - `f8` | Spectral channels |
+| `f1` – `f8` | Spectral channels |
 
---
+---
 
 ## Citation
 
@@ -266,6 +339,11 @@ If you use this package in your research, please cite both the package and BirdW
 ```r
 citation("birdweatheR")
 ```
+
+For examples of published work using BirdWeather data, see:
+
+- Pease & Gilbert (2025). Light pollution prolongs avian vocal activity by up to 50 minutes in the brightest landscapes. *Science*, 387, 848–853. [doi:10.1126/science.adv9472](https://www.science.org/doi/10.1126/science.adv9472)
+- Gilbert et al. (2026). Behavioral responses of birds to the 2023 Annular and 2024 Total Solar Eclipses. *Ecology and Evolution*. [doi:10.1002/ece3.73090](https://onlinelibrary.wiley.com/doi/full/10.1002/ece3.73090)
 
 ## License
 
