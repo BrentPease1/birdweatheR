@@ -6,7 +6,7 @@ Authors@R: person("Brent S. Pease", email = "bpease1@siu.edu", role = c("aut", "
            person("Neil A. Gilbert", email = "neil.gilbert@okstate.edu", role = c("aut")),
 Description: Provides functions to retrieve bird detection data, species 
     information, and station data from the BirdWeather GraphQL API.
-URL: https://birdweather.com/
+URL: https://birdweather.com/, https://brentpease1.github.io/birdweatheR/
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
