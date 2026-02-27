@@ -1,0 +1,134 @@
+# Get BirdWeather Time of Day Detection Counts
+
+Returns detection counts binned by time of day for a given species. Each
+row is one 30-minute time bin. Useful for visualizing daily activity
+patterns like dawn chorus or nocturnal behavior.
+
+## Usage
+
+``` r
+get_tod_counts(
+  species_id = NULL,
+  from = NULL,
+  to = NULL,
+  station_ids = NULL,
+  confidence_gte = NULL,
+  ne = NULL,
+  sw = NULL,
+  time_of_day_gte = NULL,
+  time_of_day_lte = NULL,
+  by_station = FALSE,
+  fill_zeros = FALSE
+)
+```
+
+## Arguments
+
+- species_id:
+
+  A single species ID (required). Use
+  [`find_species`](https://brentpease1.github.io/birdweatheR/reference/find_species.md)
+  to look up species IDs.
+
+- from:
+
+  Start datetime in ISO8601 format (e.g. "2025-01-01T00:00:00.000Z")
+
+- to:
+
+  End datetime in ISO8601 format (e.g. "2025-01-02T00:00:00.000Z")
+
+- station_ids:
+
+  Character vector of station IDs to filter on (optional)
+
+- confidence_gte:
+
+  Minimum (\>=) confidence threshold as a float (optional)
+
+- ne:
+
+  Named list with lat and lon defining the north-east corner of a
+  bounding box (optional). Must be used together with sw. Example:
+  list(lat = 42.0, lon = -85.0)
+
+- sw:
+
+  Named list with lat and lon defining the south-west corner of a
+  bounding box (optional). Must be used together with ne. Example:
+  list(lat = 36.0, lon = -96.0)
+
+- time_of_day_gte:
+
+  Minimum (\>=) time of day as a fractional hour (e.g. 6.0 = 6:00am).
+  Useful for subsetting to dawn or dusk windows (optional)
+
+- time_of_day_lte:
+
+  Maximum (\<=) time of day as a fractional hour (optional)
+
+- by_station:
+
+  Logical. If TRUE, returns results grouped by station_id by making one
+  API call per station and combining results. Requires station_ids to be
+  provided. Default FALSE.
+
+- fill_zeros:
+
+  Logical. Used in combination with by_station. If TRUE, fills zeros for
+  stations/hours that did not detect focal species. Requires station_ids
+  to be provided. Default FALSE.
+
+## Value
+
+A data.table with columns: species_id, hour, count where hour is a
+fractional hour (e.g. 6.5 = 6:30am). If by_station = TRUE, an additional
+station_id column is included.
+
+## Note
+
+This endpoint may only return data for frequently detected species. If
+no data is returned, try a more common species or a longer time period.
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+connect_birdweather()
+
+# American Robin time of day activity
+robin_id <- find_species("American Robin")$species_id
+get_tod_counts(
+  species_id = robin_id,
+  from       = "2025-05-01T00:00:00.000Z",
+  to         = "2025-05-31T00:00:00.000Z"
+)
+
+# Dawn window only (5am - 9am)
+get_tod_counts(
+  species_id       = robin_id,
+  from             = "2025-05-01T00:00:00.000Z",
+  to               = "2025-05-31T00:00:00.000Z",
+  time_of_day_gte  = 5.0,
+  time_of_day_lte  = 9.0
+)
+
+# Regional activity using bounding box
+get_tod_counts(
+  species_id = robin_id,
+  from       = "2025-05-01T00:00:00.000Z",
+  to         = "2025-05-31T00:00:00.000Z",
+  ne         = list(lat = 42.0, lon = -85.0),
+  sw         = list(lat = 36.0, lon = -96.0)
+)
+
+# Per-station breakdown
+get_tod_counts(
+  species_id  = robin_id,
+  from        = "2025-05-01T00:00:00.000Z",
+  to          = "2025-05-31T00:00:00.000Z",
+  station_ids = c("1733", "2522"),
+  by_station  = TRUE
+)
+} # }
+```
