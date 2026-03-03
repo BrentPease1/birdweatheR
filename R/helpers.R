@@ -1,6 +1,8 @@
 # helpers.R
 # Shared utility functions for the birdweather package.
 # These are internal helpers not exported to the user.
+#
+utils::globalVariables(":=")
 #' Flatten a page of detection nodes into a clean data.table
 #'
 #' Takes the raw nested data frame returned by fromJSON for a page of
@@ -40,4 +42,59 @@ flatten_nodes <- function(nodes) {
   )
 }
 
-utils::globalVariables(":=")
+#' Execute a paginated GraphQL request with exponential backoff retry
+#'
+#' Wraps a single BirdWeather API page request with automatic retry logic
+#' to handle transient server errors (e.g. HTTP 504 gateway timeouts) that
+#' can occur mid-pagination on large queries. On each failure, waits an
+#' exponentially increasing amount of time before retrying. HTML error
+#' response bodies are collapsed to a single readable line in the console.
+#'
+#' @param query_exec A ghql query object as returned by
+#'   \code{ghql::Query$new()$query()}
+#' @param variables A named list of GraphQL variables to pass with the request
+#' @param max_retries Maximum number of attempts before giving up and throwing
+#'   an error (default: 5). Backoff sequence is approximately 2s, 4s, 8s, 16s.
+#'
+#' @return The parsed JSON response list from \code{jsonlite::fromJSON} on
+#'   success. Stops with an error if all attempts are exhausted.
+#' @noRd
+fetch_page_with_retry <- function(query_exec, variables, max_retries = 5) {
+  attempt <- 0
+
+  repeat {
+    attempt <- attempt + 1
+
+    result <- tryCatch(
+      .birdweather_env$connection$exec(query_exec$url_link, variables = variables) |>
+        jsonlite::fromJSON(flatten = FALSE),
+      error = function(e) list(.__error = conditionMessage(e))
+    )
+
+    # Transport-level error (e.g. connection reset, curl error)
+    if (!is.null(result$.__error)) {
+      msg <- result$.__error
+      # API-level error (e.g. 504 returned as GraphQL error body)
+    } else if (!is.null(result$errors)) {
+      msg <- paste(result$errors$message, collapse = "; ")
+    } else {
+      return(result)  # success — exit retry loop
+    }
+
+    # Collapse HTML error pages to one clean line
+    if (grepl("<html", msg, ignore.case = TRUE)) {
+      status <- regmatches(msg, regexpr("\\[HTTP \\d+\\]", msg))
+      status <- if (length(status)) status else "HTTP error"
+      msg    <- paste(status, "(server returned HTML error page)")
+    }
+
+    if (attempt >= max_retries) {
+      stop("Page failed after ", max_retries, " attempts. Last error: ", msg)
+    }
+
+    wait <- 2^attempt + runif(1, 0, 1)  # exponential backoff + jitter
+    message("  Transient error on attempt ", attempt, ": ", msg)
+    message("  Retrying in ", round(wait, 1), "s...")
+    Sys.sleep(wait)
+  }
+}
