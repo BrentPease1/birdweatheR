@@ -3,7 +3,8 @@
 #' Retrieves bird detections from the BirdWeather API with optional filters.
 #' Handles pagination automatically up to the specified limit. Returns a fully
 #' flat data.table with all nested fields (coords, species, station) expanded
-#' into individual columns.
+#' into individual columns. Includes automatic retry with exponential backoff
+#' to handle transient 504/server errors mid-pagination.
 #'
 #' @param from Start datetime as a string in ISO8601 format
 #'   (e.g. "2025-01-01T00:00:00.000Z"). Defaults to 24 hours ago if NULL.
@@ -30,7 +31,8 @@
 #' @param limit Maximum total number of detections to return (default: NULL,
 #'   returns all matching detections). Each page fetches 250 at a time.
 #'   Set to a specific number for exploratory pulls.
-#'
+#' @param max_retries Maximum number of retry attempts per page on transient
+#'   errors (default: 5). Retries use exponential backoff with jitter.
 #'
 #' @return A flat data.table where each row is one detection with columns:
 #'   id, timestamp, confidence, score,
@@ -89,7 +91,8 @@ get_detections <- function(from           = NULL,
                            confidence_gte = NULL,
                            ne             = NULL,
                            sw             = NULL,
-                           limit          = NULL) {
+                           limit          = NULL,
+                           max_retries    = 5) {
 
   if (is.null(.birdweather_env$connection)) {
     stop("No API connection found. Please run connect_birdweather() first.")
@@ -104,6 +107,7 @@ get_detections <- function(from           = NULL,
     stop("'to' must be in ISO8601 format with zero-padded month and day ",
          "(e.g. '2025-05-07T00:00:00.000Z'). Got: ", to)
   }
+
 
   # -------------------------------------------------------
   # Resolve species names to IDs if provided
@@ -159,7 +163,7 @@ get_detections <- function(from           = NULL,
   if (!is.null(confidence_gte)) base_variables$confidenceGte <- confidence_gte
   if (!is.null(ne))             base_variables$ne            <- list(lat = ne$lat, lon = ne$lon)
   if (!is.null(sw))             base_variables$sw            <- list(lat = sw$lat, lon = sw$lon)
-  if (!is.null(station_types)) base_variables$stationTypes <- as.list(station_types)
+  if (!is.null(station_types))  base_variables$stationTypes  <- as.list(station_types)
 
   # -------------------------------------------------------
   # Build query string dynamically from active variables
@@ -229,18 +233,10 @@ get_detections <- function(from           = NULL,
   following_query <- build_query(include_after = TRUE)
 
   # -------------------------------------------------------
-  # Execute first page
+  # Execute first page (with retry)
   # -------------------------------------------------------
   query_exec <- ghql::Query$new()$query('url_link', initial_query)
-  result <- .birdweather_env$connection$exec(query_exec$url_link,
-                                             variables = base_variables) |>
-    jsonlite::fromJSON(flatten = FALSE)
-
-  if (!is.null(result$errors)) {
-    message("API returned errors:")
-    print(result$errors)
-    return(data.table::data.table())
-  }
+  result     <- fetch_page_with_retry(query_exec, base_variables, max_retries = max_retries)
 
   nodes <- result$data$detections$nodes
 
@@ -271,6 +267,7 @@ get_detections <- function(from           = NULL,
 
   while (isTRUE(has_next) && (is.null(limit) || sum(sapply(all_pages, nrow)) < limit)) {
 
+    Sys.sleep(1)
     page      <- page + 1
     remaining <- if (is.null(limit)) 250 else min(250, limit - sum(sapply(all_pages, nrow)))
 
@@ -283,15 +280,7 @@ get_detections <- function(from           = NULL,
     )
 
     query_exec <- ghql::Query$new()$query('url_link', following_query)
-    result <- .birdweather_env$connection$exec(query_exec$url_link,
-                                               variables = page_variables) |>
-      jsonlite::fromJSON(flatten = FALSE)
-
-    if (!is.null(result$errors)) {
-      message("API error on page ", page, " - stopping.")
-      print(result$errors)
-      break
-    }
+    result     <- fetch_page_with_retry(query_exec, page_variables, max_retries = max_retries)
 
     nodes <- result$data$detections$nodes
 
