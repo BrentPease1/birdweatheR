@@ -73,6 +73,7 @@
 #'   by_station  = TRUE
 #' )
 #' }
+
 get_tod_counts <- function(species_id      = NULL,
                            from            = NULL,
                            to              = NULL,
@@ -254,3 +255,6 @@ get_tod_counts <- function(species_id      = NULL,
 
   final
 }
+
+# Suppress R CMD check notes for data.table column references
+utils::globalVariables(c("station_id", "count"))

@@ -22,6 +22,10 @@
 #' @param continents Character vector of continents to filter on (optional)
 #' @param countries Character vector of countries to filter on (optional)
 #' @param confidence_gte Minimum confidence threshold as a float (optional)
+#' @param probability_gte Numeric. Filter detections with probability greater
+#'   than or equal to this value.(optional)
+#' @param probability_lte Numeric. Filter detections with probability less than
+#'   or equal to this value. (optional)
 #' @param ne Named list with lat and lon defining the north-east corner of a
 #'   bounding box (optional). Must be used together with sw.
 #'   Example: list(lat = 42.0, lon = -85.0)
@@ -89,6 +93,8 @@ get_detections <- function(from           = NULL,
                            continents     = NULL,
                            countries      = NULL,
                            confidence_gte = NULL,
+                           probability_gte = NULL,
+                           probability_lte = NULL,
                            ne             = NULL,
                            sw             = NULL,
                            limit          = NULL,
@@ -161,6 +167,8 @@ get_detections <- function(from           = NULL,
   if (!is.null(continents))     base_variables$continents    <- as.list(continents)
   if (!is.null(countries))      base_variables$countries     <- as.list(countries)
   if (!is.null(confidence_gte)) base_variables$confidenceGte <- confidence_gte
+  if (!is.null(probability_gte)) base_variables$probabilityGte <- probability_gte
+  if (!is.null(probability_lte)) base_variables$probabilityLte <- probability_lte
   if (!is.null(ne))             base_variables$ne            <- list(lat = ne$lat, lon = ne$lon)
   if (!is.null(sw))             base_variables$sw            <- list(lat = sw$lat, lon = sw$lon)
   if (!is.null(station_types))  base_variables$stationTypes  <- as.list(station_types)
@@ -178,6 +186,8 @@ get_detections <- function(from           = NULL,
     continents    = "$continents: [String!]",
     countries     = "$countries: [String!]",
     confidenceGte = "$confidenceGte: Float",
+    probabilityGte = "$probabilityGte: Float",
+    probabilityLte = "$probabilityLte: Float",
     ne            = "$ne: InputLocation",
     sw            = "$sw: InputLocation"
   )
@@ -191,6 +201,8 @@ get_detections <- function(from           = NULL,
     continents    = "continents: $continents",
     countries     = "countries: $countries",
     confidenceGte = "confidenceGte: $confidenceGte",
+    probabilityGte = "probabilityGte: $probabilityGte",
+    probabilityLte = "probabilityLte: $probabilityLte",
     ne            = "ne: $ne",
     sw            = "sw: $sw"
   )
@@ -214,6 +226,7 @@ get_detections <- function(from           = NULL,
             id
             timestamp
             confidence
+            probability
             score
             species { id commonName scientificName classification }
             station {

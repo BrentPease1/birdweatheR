@@ -14,9 +14,12 @@ get_detections(
   continents = NULL,
   countries = NULL,
   confidence_gte = NULL,
+  probability_gte = NULL,
+  probability_lte = NULL,
   ne = NULL,
   sw = NULL,
-  limit = NULL
+  limit = NULL,
+  max_retries = 5
 )
 }
 \arguments{
@@ -45,6 +48,12 @@ user is prompted to rerun with a more specific name.}
 
 \item{confidence_gte}{Minimum confidence threshold as a float (optional)}
 
+\item{probability_gte}{Numeric. Filter detections with probability greater
+than or equal to this value.(optional)}
+
+\item{probability_lte}{Numeric. Filter detections with probability less than
+or equal to this value. (optional)}
+
 \item{ne}{Named list with lat and lon defining the north-east corner of a
 bounding box (optional). Must be used together with sw.
 Example: list(lat = 42.0, lon = -85.0)}
@@ -56,11 +65,14 @@ Example: list(lat = 36.0, lon = -96.0)}
 \item{limit}{Maximum total number of detections to return (default: NULL,
 returns all matching detections). Each page fetches 250 at a time.
 Set to a specific number for exploratory pulls.}
+
+\item{max_retries}{Maximum number of retry attempts per page on transient
+errors (default: 5). Retries use exponential backoff with jitter.}
 }
 \value{
 A flat data.table where each row is one detection with columns:
 id, timestamp, confidence, score,
-species_id, common_name, scientific_name,
+species_id, common_name, scientific_name, classification,
 station_id, station_name, station_type,
 station_country, station_continent, station_state, station_location,
 station_lat, station_lon
@@ -69,7 +81,8 @@ station_lat, station_lon
 Retrieves bird detections from the BirdWeather API with optional filters.
 Handles pagination automatically up to the specified limit. Returns a fully
 flat data.table with all nested fields (coords, species, station) expanded
-into individual columns.
+into individual columns. Includes automatic retry with exponential backoff
+to handle transient 504/server errors mid-pagination.
 }
 \examples{
 \dontrun{

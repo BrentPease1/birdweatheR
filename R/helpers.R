@@ -18,6 +18,7 @@ flatten_nodes <- function(nodes) {
     id                = nodes$id,
     timestamp         = nodes$timestamp,
     confidence        = nodes$confidence,
+    probability       = nodes$probability,
     score             = nodes$score,
     det_lat           = nodes$coords$lat,
     det_lon           = nodes$coords$lon,
@@ -58,7 +59,9 @@ flatten_nodes <- function(nodes) {
 #'
 #' @return The parsed JSON response list from \code{jsonlite::fromJSON} on
 #'   success. Stops with an error if all attempts are exhausted.
+#' @importFrom stats runif
 #' @noRd
+
 fetch_page_with_retry <- function(query_exec, variables, max_retries = 5) {
   attempt <- 0
 
