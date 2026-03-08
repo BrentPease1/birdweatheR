@@ -3,7 +3,9 @@
 Retrieves bird detections from the BirdWeather API with optional
 filters. Handles pagination automatically up to the specified limit.
 Returns a fully flat data.table with all nested fields (coords, species,
-station) expanded into individual columns.
+station) expanded into individual columns. Includes automatic retry with
+exponential backoff to handle transient 504/server errors
+mid-pagination.
 
 ## Usage
 
@@ -18,9 +20,12 @@ get_detections(
   continents = NULL,
   countries = NULL,
   confidence_gte = NULL,
+  probability_gte = NULL,
+  probability_lte = NULL,
   ne = NULL,
   sw = NULL,
-  limit = NULL
+  limit = NULL,
+  max_retries = 5
 )
 ```
 
@@ -69,6 +74,16 @@ get_detections(
 
   Minimum confidence threshold as a float (optional)
 
+- probability_gte:
+
+  Numeric. Filter detections with probability greater than or equal to
+  this value.(optional)
+
+- probability_lte:
+
+  Numeric. Filter detections with probability less than or equal to this
+  value. (optional)
+
 - ne:
 
   Named list with lat and lon defining the north-east corner of a
@@ -87,11 +102,16 @@ get_detections(
   all matching detections). Each page fetches 250 at a time. Set to a
   specific number for exploratory pulls.
 
+- max_retries:
+
+  Maximum number of retry attempts per page on transient errors
+  (default: 5). Retries use exponential backoff with jitter.
+
 ## Value
 
 A flat data.table where each row is one detection with columns: id,
 timestamp, confidence, score, species_id, common_name, scientific_name,
-station_id, station_name, station_type, station_country,
+classification, station_id, station_name, station_type, station_country,
 station_continent, station_state, station_location, station_lat,
 station_lon
 
