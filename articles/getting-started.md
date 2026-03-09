@@ -19,10 +19,10 @@ database: 1) A user-friendly GUI data explorer, 2) GraphQL API, and 3)
 REST API. While the latter two are particularly powerful, not all users
 are comfortable with API calls. `birdweatheR` provides an R interface to
 the BirdWeather API, enabling researchers to download detection data,
-explore species activity patterns, andintegrate on-board sensor readings
-from BirdWeather PUC units — which record temperature, barometric
-pressure, humidity, air quality, and spectral light levels alongside
-acoustic detections.
+explore species activity patterns, and integrate on-board sensor
+readings from BirdWeather PUC units — which record temperature,
+barometric pressure, humidity, air quality, and spectral light levels
+alongside acoustic detections.
 
 #### Installation
 
