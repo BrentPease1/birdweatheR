@@ -362,7 +362,7 @@ median_lat <- woth[, .(median_lat = median(station_lat, na.rm = TRUE)),
                    by = date]
 
 ggplot(median_lat, aes(x = date, y = median_lat)) +
-  geom_smooth(color = "#1C2223", fill = "#8D4C00") +
+  geom_smooth(method = "gam", color = "#1C2223", fill = "#8D4C00") +
   annotate("text",
            x     = as.Date("2025-03-10"),
            y     = 20,
