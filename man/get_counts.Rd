@@ -40,8 +40,8 @@ A single-row data.table with columns:
 detections, species, stations
 }
 \description{
-Returns a single-row summary of detections, species, stations, and BirdNet
-detections for a given time period. Useful as a quick platform-wide or
+Returns a single-row summary of detections, species, and stations for a given
+time period. Useful as a quick platform-wide or
 regional snapshot before pulling raw detections.
 }
 \details{
@@ -73,4 +73,8 @@ get_counts(
   station_types = "puc"
 )
 }
+}
+\seealso{
+\code{\link{get_detections}} for raw detections,
+\code{\link{get_daily_detection_counts}} for day-by-day breakdowns
 }

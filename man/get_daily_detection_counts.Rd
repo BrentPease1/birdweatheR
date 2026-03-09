@@ -51,3 +51,8 @@ get_daily_detection_counts(
 )
 }
 }
+\seealso{
+\code{\link{get_counts}} for a single-row platform-wide snapshot,
+\code{\link{get_species_info}} to join readable names onto species_id values,
+\code{\link{get_detections}} for row-level detection data
+}

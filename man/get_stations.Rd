@@ -16,9 +16,9 @@ get_stations(
 \arguments{
 \item{query}{Optional search string to filter stations by name (optional)}
 
-\item{from}{Start datetime in ISO8601 format (optional)}
+\item{from}{Start datetime in ISO8601 format (e.g. "2025-01-01T00:00:00.000Z") (optional)}
 
-\item{to}{End datetime in ISO8601 format (optional)}
+\item{to}{End datetime in ISO8601 format (e.g. "2025-01-02T00:00:00.000Z") (optional)}
 
 \item{ne}{Named list with lat and lon defining the north-east corner of a
 bounding box (optional). Must be used together with sw.}
@@ -59,4 +59,9 @@ stations <- get_stations(
   sw = list(lat = 36.0, lon = -96.0)
 )
 }
+}
+\seealso{
+\code{\link{get_detections}} to pull detections filtered to specific stations,
+\code{\link{get_environment_data}} and \code{\link{get_light_data}} which require station IDs,
+\code{\link{get_tod_counts}} for per-station activity patterns
 }

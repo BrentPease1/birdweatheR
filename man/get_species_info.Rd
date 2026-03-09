@@ -38,3 +38,8 @@ daily[species_info, on = .(speciesId = species_id),
            scientific_name = i.scientific_name)]
 }
 }
+\seealso{
+\code{\link{find_species}} for searching by name,
+\code{\link{get_daily_detection_counts}} and
+\code{\link{get_top_species}} whose output commonly needs species metadata joined on
+}

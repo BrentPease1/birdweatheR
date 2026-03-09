@@ -27,3 +27,8 @@ bw_find_species("Poecile atricapillus")
 bw_find_species("quail", limit = 20)
 }
 }
+\seealso{
+\code{\link{get_detections}} for filtering detections by species,
+\code{\link{get_tod_counts}} which requires a species_id,
+\code{\link{get_species_info}} for full species metadata given IDs
+}

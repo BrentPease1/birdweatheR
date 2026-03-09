@@ -46,13 +46,15 @@ user is prompted to rerun with a more specific name.}
 
 \item{countries}{Character vector of countries to filter on (optional)}
 
-\item{confidence_gte}{Minimum confidence threshold as a float (optional)}
+\item{confidence_gte}{Minimum BirdNET confidence threshold as a float (optional)}
 
 \item{probability_gte}{Numeric. Filter detections with probability greater
-than or equal to this value.(optional)}
+than or equal to this value. Probability is a measure of the species' likely
+occurrence given timestamp, station_lat, and station_lon. eBird is the source
+of species occurrence probabilities. (optional)}
 
 \item{probability_lte}{Numeric. Filter detections with probability less than
-or equal to this value. (optional)}
+or equal to this value. See probability_gte for details. (optional)}
 
 \item{ne}{Named list with lat and lon defining the north-east corner of a
 bounding box (optional). Must be used together with sw.
@@ -71,9 +73,9 @@ errors (default: 5). Retries use exponential backoff with jitter.}
 }
 \value{
 A flat data.table where each row is one detection with columns:
-id, timestamp, confidence, score,
+id, timestamp, confidence, probability, score,
 species_id, common_name, scientific_name, classification,
-station_id, station_name, station_type,
+station_id, station_name, station_type, station_timezone,
 station_country, station_continent, station_state, station_location,
 station_lat, station_lon
 }
@@ -121,4 +123,10 @@ dets <- get_detections(
   limit = 10000
 )
 }
+}
+\seealso{
+\code{\link{find_species}} to look up species IDs or names,
+\code{\link{get_stations}} to find station IDs for filtering,
+\code{\link{get_counts}} for a lightweight summary before pulling raw detections,
+\code{\link{get_daily_detection_counts}} for pre-aggregated daily totals
 }

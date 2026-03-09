@@ -54,7 +54,8 @@ station_ids to be provided. Default FALSE.}
 \value{
 A data.table with columns:
 species_id, hour, count
-where hour is a fractional hour (e.g. 6.5 = 6:30am).
+where hour is the midpoint of a 30-minute bin expressed as a fractional
+hour (e.g. 6.5 = the 6:30am bin, covering 6:30-7:00am).
 If by_station = TRUE, an additional station_id column is included.
 }
 \description{
@@ -105,4 +106,9 @@ get_tod_counts(
   by_station  = TRUE
 )
 }
+}
+\seealso{
+\code{\link{find_species}} to look up the required species_id,
+\code{\link{get_stations}} to find station IDs when using by_station = TRUE,
+\code{\link{get_detections}} for the underlying raw detections
 }

@@ -50,3 +50,8 @@ get_top_species(
 )
 }
 }
+\seealso{
+\code{\link{get_species_info}} for full metadata on returned species,
+\code{\link{get_tod_counts}} to explore activity patterns for a top species,
+\code{\link{get_daily_detection_counts}} for time series of a specific species
+}

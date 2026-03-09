@@ -46,3 +46,7 @@ env <- get_environment_data(
 )
 }
 }
+\seealso{
+\code{\link{get_stations}} to find valid PUC station IDs,
+\code{\link{get_detections}} to pair sensor readings with bird detections
+}
