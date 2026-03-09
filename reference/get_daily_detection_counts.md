@@ -45,6 +45,15 @@ A data.table. When by_species = FALSE: date, day_of_year, daily_total.
 When by_species = TRUE: date, day_of_year, daily_total, species_id,
 count.
 
+## See also
+
+[`get_counts`](https://brentpease1.github.io/birdweatheR/reference/get_counts.md)
+for a single-row platform-wide snapshot,
+[`get_species_info`](https://brentpease1.github.io/birdweatheR/reference/get_species_info.md)
+to join readable names onto species_id values,
+[`get_detections`](https://brentpease1.github.io/birdweatheR/reference/get_detections.md)
+for row-level detection data
+
 ## Examples
 
 ``` r

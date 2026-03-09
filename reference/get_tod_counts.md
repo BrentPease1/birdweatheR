@@ -81,14 +81,24 @@ get_tod_counts(
 
 ## Value
 
-A data.table with columns: species_id, hour, count where hour is a
-fractional hour (e.g. 6.5 = 6:30am). If by_station = TRUE, an additional
-station_id column is included.
+A data.table with columns: species_id, hour, count where hour is the
+midpoint of a 30-minute bin expressed as a fractional hour (e.g. 6.5 =
+the 6:30am bin, covering 6:30-7:00am). If by_station = TRUE, an
+additional station_id column is included.
 
 ## Note
 
 This endpoint may only return data for frequently detected species. If
 no data is returned, try a more common species or a longer time period.
+
+## See also
+
+[`find_species`](https://brentpease1.github.io/birdweatheR/reference/find_species.md)
+to look up the required species_id,
+[`get_stations`](https://brentpease1.github.io/birdweatheR/reference/get_stations.md)
+to find station IDs when using by_station = TRUE,
+[`get_detections`](https://brentpease1.github.io/birdweatheR/reference/get_detections.md)
+for the underlying raw detections
 
 ## Examples
 

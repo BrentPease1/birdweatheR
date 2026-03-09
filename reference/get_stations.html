@@ -64,11 +64,11 @@ Handles pagination automatically and returns a flat data.table.</p>
 
 
 <dt id="arg-from">from<a class="anchor" aria-label="anchor" href="#arg-from"></a></dt>
-<dd><p>Start datetime in ISO8601 format (optional)</p></dd>
+<dd><p>Start datetime in ISO8601 format (e.g. "2025-01-01T00:00:00.000Z") (optional)</p></dd>
 
 
 <dt id="arg-to">to<a class="anchor" aria-label="anchor" href="#arg-to"></a></dt>
-<dd><p>End datetime in ISO8601 format (optional)</p></dd>
+<dd><p>End datetime in ISO8601 format (e.g. "2025-01-02T00:00:00.000Z") (optional)</p></dd>
 
 
 <dt id="arg-ne">ne<a class="anchor" aria-label="anchor" href="#arg-ne"></a></dt>
@@ -97,6 +97,12 @@ station_lat, station_lon, location_privacy</p>
     <h2 id="note">Note<a class="anchor" aria-label="anchor" href="#note"></a></h2>
     <p>The fields <code>latestDetectionAt</code> and <code>earliestDetectionAt</code>
 are not returned due to server-side performance limitations.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
+    <div class="dont-index"><p><code><a href="get_detections.html">get_detections</a></code> to pull detections filtered to specific stations,
+<code><a href="get_environment_data.html">get_environment_data</a></code> and <code><a href="get_light_data.html">get_light_data</a></code> which require station IDs,
+<code><a href="get_tod_counts.html">get_tod_counts</a></code> for per-station activity patterns</p></div>
     </div>
 
     <div class="section level2">

@@ -72,17 +72,19 @@ get_detections(
 
 - confidence_gte:
 
-  Minimum confidence threshold as a float (optional)
+  Minimum BirdNET confidence threshold as a float (optional)
 
 - probability_gte:
 
   Numeric. Filter detections with probability greater than or equal to
-  this value.(optional)
+  this value. Probability is a measure of the species' likely occurrence
+  given timestamp, station_lat, and station_lon. eBird is the source of
+  species occurrence probabilities. (optional)
 
 - probability_lte:
 
   Numeric. Filter detections with probability less than or equal to this
-  value. (optional)
+  value. See probability_gte for details. (optional)
 
 - ne:
 
@@ -110,10 +112,21 @@ get_detections(
 ## Value
 
 A flat data.table where each row is one detection with columns: id,
-timestamp, confidence, score, species_id, common_name, scientific_name,
-classification, station_id, station_name, station_type, station_country,
-station_continent, station_state, station_location, station_lat,
-station_lon
+timestamp, confidence, probability, score, species_id, common_name,
+scientific_name, classification, station_id, station_name, station_type,
+station_timezone, station_country, station_continent, station_state,
+station_location, station_lat, station_lon
+
+## See also
+
+[`find_species`](https://brentpease1.github.io/birdweatheR/reference/find_species.md)
+to look up species IDs or names,
+[`get_stations`](https://brentpease1.github.io/birdweatheR/reference/get_stations.md)
+to find station IDs for filtering,
+[`get_counts`](https://brentpease1.github.io/birdweatheR/reference/get_counts.md)
+for a lightweight summary before pulling raw detections,
+[`get_daily_detection_counts`](https://brentpease1.github.io/birdweatheR/reference/get_daily_detection_counts.md)
+for pre-aggregated daily totals
 
 ## Examples
 

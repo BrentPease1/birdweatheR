@@ -24,11 +24,13 @@ get_stations(
 
 - from:
 
-  Start datetime in ISO8601 format (optional)
+  Start datetime in ISO8601 format (e.g. "2025-01-01T00:00:00.000Z")
+  (optional)
 
 - to:
 
-  End datetime in ISO8601 format (optional)
+  End datetime in ISO8601 format (e.g. "2025-01-02T00:00:00.000Z")
+  (optional)
 
 - ne:
 
@@ -56,6 +58,17 @@ station_lat, station_lon, location_privacy
 
 The fields `latestDetectionAt` and `earliestDetectionAt` are not
 returned due to server-side performance limitations.
+
+## See also
+
+[`get_detections`](https://brentpease1.github.io/birdweatheR/reference/get_detections.md)
+to pull detections filtered to specific stations,
+[`get_environment_data`](https://brentpease1.github.io/birdweatheR/reference/get_environment_data.md)
+and
+[`get_light_data`](https://brentpease1.github.io/birdweatheR/reference/get_light_data.md)
+which require station IDs,
+[`get_tod_counts`](https://brentpease1.github.io/birdweatheR/reference/get_tod_counts.md)
+for per-station activity patterns
 
 ## Examples
 

@@ -1,8 +1,8 @@
 # Get BirdWeather Summary Counts
 
-Returns a single-row summary of detections, species, stations, and
-BirdNet detections for a given time period. Useful as a quick
-platform-wide or regional snapshot before pulling raw detections.
+Returns a single-row summary of detections, species, and stations for a
+given time period. Useful as a quick platform-wide or regional snapshot
+before pulling raw detections.
 
 ## Usage
 
@@ -65,6 +65,13 @@ For finer-grained summaries by species or station over time, see
 [`get_daily_detection_counts`](https://brentpease1.github.io/birdweatheR/reference/get_daily_detection_counts.md)
 and
 [`get_detections`](https://brentpease1.github.io/birdweatheR/reference/get_detections.md).
+
+## See also
+
+[`get_detections`](https://brentpease1.github.io/birdweatheR/reference/get_detections.md)
+for raw detections,
+[`get_daily_detection_counts`](https://brentpease1.github.io/birdweatheR/reference/get_daily_detection_counts.md)
+for day-by-day breakdowns
 
 ## Examples
 

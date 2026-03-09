@@ -42,6 +42,15 @@ get_top_species(
 A data.table with columns: species_id, common_name, scientific_name,
 count, almost_certain, very_likely, unlikely, uncertain
 
+## See also
+
+[`get_species_info`](https://brentpease1.github.io/birdweatheR/reference/get_species_info.md)
+for full metadata on returned species,
+[`get_tod_counts`](https://brentpease1.github.io/birdweatheR/reference/get_tod_counts.md)
+to explore activity patterns for a top species,
+[`get_daily_detection_counts`](https://brentpease1.github.io/birdweatheR/reference/get_daily_detection_counts.md)
+for time series of a specific species
+
 ## Examples
 
 ``` r

@@ -22,6 +22,15 @@ A data.table with columns: species_id, common_name, scientific_name,
 color, alpha, alpha6, ebird_code, image_url, thumbnail_url,
 wikipedia_summary
 
+## See also
+
+[`find_species`](https://brentpease1.github.io/birdweatheR/reference/find_species.md)
+for searching by name,
+[`get_daily_detection_counts`](https://brentpease1.github.io/birdweatheR/reference/get_daily_detection_counts.md)
+and
+[`get_top_species`](https://brentpease1.github.io/birdweatheR/reference/get_top_species.md)
+whose output commonly needs species metadata joined on
+
 ## Examples
 
 ``` r

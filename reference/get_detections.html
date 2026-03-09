@@ -117,17 +117,19 @@ user is prompted to rerun with a more specific name.</p></dd>
 
 
 <dt id="arg-confidence-gte">confidence_gte<a class="anchor" aria-label="anchor" href="#arg-confidence-gte"></a></dt>
-<dd><p>Minimum confidence threshold as a float (optional)</p></dd>
+<dd><p>Minimum BirdNET confidence threshold as a float (optional)</p></dd>
 
 
 <dt id="arg-probability-gte">probability_gte<a class="anchor" aria-label="anchor" href="#arg-probability-gte"></a></dt>
 <dd><p>Numeric. Filter detections with probability greater
-than or equal to this value.(optional)</p></dd>
+than or equal to this value. Probability is a measure of the species' likely
+occurrence given timestamp, station_lat, and station_lon. eBird is the source
+of species occurrence probabilities. (optional)</p></dd>
 
 
 <dt id="arg-probability-lte">probability_lte<a class="anchor" aria-label="anchor" href="#arg-probability-lte"></a></dt>
 <dd><p>Numeric. Filter detections with probability less than
-or equal to this value. (optional)</p></dd>
+or equal to this value. See probability_gte for details. (optional)</p></dd>
 
 
 <dt id="arg-ne">ne<a class="anchor" aria-label="anchor" href="#arg-ne"></a></dt>
@@ -156,11 +158,18 @@ errors (default: 5). Retries use exponential backoff with jitter.</p></dd>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A flat data.table where each row is one detection with columns:
-id, timestamp, confidence, score,
+id, timestamp, confidence, probability, score,
 species_id, common_name, scientific_name, classification,
-station_id, station_name, station_type,
+station_id, station_name, station_type, station_timezone,
 station_country, station_continent, station_state, station_location,
 station_lat, station_lon</p>
+    </div>
+    <div class="section level2">
+    <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
+    <div class="dont-index"><p><code><a href="find_species.html">find_species</a></code> to look up species IDs or names,
+<code><a href="get_stations.html">get_stations</a></code> to find station IDs for filtering,
+<code><a href="get_counts.html">get_counts</a></code> for a lightweight summary before pulling raw detections,
+<code><a href="get_daily_detection_counts.html">get_daily_detection_counts</a></code> for pre-aggregated daily totals</p></div>
     </div>
 
     <div class="section level2">
