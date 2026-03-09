@@ -1,7 +1,7 @@
 #' Get BirdWeather Summary Counts
 #'
-#' Returns a single-row summary of detections, species, stations, and BirdNet
-#' detections for a given time period. Useful as a quick platform-wide or
+#' Returns a single-row summary of detections, species, and stations for a given
+#' time period. Useful as a quick platform-wide or
 #' regional snapshot before pulling raw detections.
 #'
 #' For finer-grained summaries by species or station over time, see

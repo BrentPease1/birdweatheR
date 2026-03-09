@@ -28,7 +28,8 @@
 #'
 #' @return A data.table with columns:
 #'   species_id, hour, count
-#'   where hour is a fractional hour (e.g. 6.5 = 6:30am).
+#'   where hour is the midpoint of a 30-minute bin expressed as a fractional
+#'   hour (e.g. 6.5 = the 6:30am bin, covering 6:30-7:00am).
 #'   If by_station = TRUE, an additional station_id column is included.
 #' @export
 #' @note This endpoint may only return data for frequently detected species.

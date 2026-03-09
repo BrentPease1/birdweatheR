@@ -21,11 +21,13 @@
 #'   user is prompted to rerun with a more specific name.
 #' @param continents Character vector of continents to filter on (optional)
 #' @param countries Character vector of countries to filter on (optional)
-#' @param confidence_gte Minimum confidence threshold as a float (optional)
+#' @param confidence_gte Minimum BirdNET confidence threshold as a float (optional)
 #' @param probability_gte Numeric. Filter detections with probability greater
-#'   than or equal to this value.(optional)
+#'   than or equal to this value. Probability is a measure of the species' likely
+#'   occurrence given timestamp, station_lat, and station_lon. eBird is the source
+#'   of species occurrence probabilities. (optional)
 #' @param probability_lte Numeric. Filter detections with probability less than
-#'   or equal to this value. (optional)
+#'   or equal to this value. See probability_gte for details. (optional)
 #' @param ne Named list with lat and lon defining the north-east corner of a
 #'   bounding box (optional). Must be used together with sw.
 #'   Example: list(lat = 42.0, lon = -85.0)
@@ -39,9 +41,9 @@
 #'   errors (default: 5). Retries use exponential backoff with jitter.
 #'
 #' @return A flat data.table where each row is one detection with columns:
-#'   id, timestamp, confidence, score,
+#'   id, timestamp, confidence, probability, score,
 #'   species_id, common_name, scientific_name, classification,
-#'   station_id, station_name, station_type,
+#'   station_id, station_name, station_type, station_timezone,
 #'   station_country, station_continent, station_state, station_location,
 #'   station_lat, station_lon
 #' @export

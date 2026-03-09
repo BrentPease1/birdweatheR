@@ -121,12 +121,13 @@ get_daily_detection_counts <- function(from        = NULL,
   data.table::rbindlist(
     lapply(seq_len(nrow(daily)), function(i) {
       dt <- data.table::as.data.table(daily$counts[[i]])
+      data.table::setnames(dt, c("speciesId", "count"), c("species_id", "count"))
       dt[, `:=`(
         date        = daily$date[i],
         day_of_year = daily$dayOfYear[i],
         daily_total = daily$total[i]
       )]
-      data.table::setcolorder(dt, c("date", "day_of_year", "daily_total", "speciesId", "count"))
+      data.table::setcolorder(dt, c("date", "day_of_year", "daily_total", "species_id", "count"))
       dt
     })
   )

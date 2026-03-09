@@ -11,7 +11,7 @@ utils::globalVariables(":=")
 #' empty strings are converted to NA consistently.
 #'
 #' @param nodes A data frame of detection nodes as returned by fromJSON
-#' @return A flat data.table with 20 columns
+#' @return A flat data.table with 19 columns
 #' @noRd
 flatten_nodes <- function(nodes) {
   data.table::data.table(

@@ -4,8 +4,8 @@
 #' Handles pagination automatically and returns a flat data.table.
 #'
 #' @param query Optional search string to filter stations by name (optional)
-#' @param from Start datetime in ISO8601 format (optional)
-#' @param to End datetime in ISO8601 format (optional)
+#' @param from Start datetime in ISO8601 format (e.g. "2025-01-01T00:00:00.000Z") (optional)
+#' @param to End datetime in ISO8601 format (e.g. "2025-01-02T00:00:00.000Z") (optional)
 #' @param ne Named list with lat and lon defining the north-east corner of a
 #'   bounding box (optional). Must be used together with sw.
 #' @param sw Named list with lat and lon defining the south-west corner of a
