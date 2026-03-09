@@ -19,6 +19,9 @@
 #'   station_lat, station_lon, location_privacy
 #' @note The fields \code{latestDetectionAt} and \code{earliestDetectionAt}
 #'   are not returned due to server-side performance limitations.
+#' @seealso \code{\link{get_detections}} to pull detections filtered to specific stations,
+#'  \code{\link{get_environment_data}} and \code{\link{get_light_data}} which require station IDs,
+#'  \code{\link{get_tod_counts}} for per-station activity patterns
 #' @export
 #' @importFrom data.table data.table rbindlist
 #'

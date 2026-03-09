@@ -12,6 +12,9 @@
 #' @return A data.table with columns:
 #'   species_id, common_name, scientific_name, count,
 #'   almost_certain, very_likely, unlikely, uncertain
+#' @seealso \code{\link{get_species_info}} for full metadata on returned species,
+#'  \code{\link{get_tod_counts}} to explore activity patterns for a top species,
+#'  \code{\link{get_daily_detection_counts}} for time series of a specific species
 #' @export
 #'
 #' @examples

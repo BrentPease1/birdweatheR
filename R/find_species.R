@@ -9,6 +9,9 @@
 #' @param limit Maximum number of results to return (default: 20)
 #'
 #' @return A data.table with columns: species_id, common_name, scientific_name
+#' @seealso \code{\link{get_detections}} for filtering detections by species,
+#'  \code{\link{get_tod_counts}} which requires a species_id,
+#'  \code{\link{get_species_info}} for full species metadata given IDs
 #' @export
 #' @importFrom data.table as.data.table setnames
 #'

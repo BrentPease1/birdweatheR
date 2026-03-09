@@ -46,6 +46,10 @@
 #'   station_id, station_name, station_type, station_timezone,
 #'   station_country, station_continent, station_state, station_location,
 #'   station_lat, station_lon
+#' @seealso \code{\link{find_species}} to look up species IDs or names,
+#'  \code{\link{get_stations}} to find station IDs for filtering,
+#'  \code{\link{get_counts}} for a lightweight summary before pulling raw detections,
+#'  \code{\link{get_daily_detection_counts}} for pre-aggregated daily totals
 #' @export
 #' @importFrom data.table data.table as.data.table rbindlist
 #'

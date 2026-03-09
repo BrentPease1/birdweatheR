@@ -9,6 +9,9 @@
 #' @return A data.table with columns:
 #'   species_id, common_name, scientific_name, color, alpha, alpha6,
 #'   ebird_code, image_url, thumbnail_url, wikipedia_summary
+#' @seealso \code{\link{find_species}} for searching by name,
+#'  \code{\link{get_daily_detection_counts}} and
+#'  \code{\link{get_top_species}} whose output commonly needs species metadata joined on
 #' @export
 #'
 #' @examples

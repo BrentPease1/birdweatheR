@@ -23,6 +23,8 @@
 #'
 #' @return A single-row data.table with columns:
 #'   detections, species, stations
+#' @seealso \code{\link{get_detections}} for raw detections,
+#'   \code{\link{get_daily_detection_counts}} for day-by-day breakdowns
 #' @export
 #'
 #' @examples

@@ -14,6 +14,8 @@
 #' @return A data.table with columns:
 #'   station_id, timestamp, temperature, humidity, barometric_pressure,
 #'   aqi, eco2, voc, sound_pressure_level
+#' @seealso \code{\link{get_stations}} to find valid PUC station IDs,
+#'  \code{\link{get_detections}} to pair sensor readings with bird detections
 #' @export
 #'
 #' @examples

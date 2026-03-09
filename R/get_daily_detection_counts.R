@@ -13,6 +13,9 @@
 #'
 #' @return A data.table. When by_species = FALSE: date, day_of_year, daily_total.
 #'   When by_species = TRUE: date, day_of_year, daily_total, species_id, count.
+#' @seealso \code{\link{get_counts}} for a single-row platform-wide snapshot,
+#'  \code{\link{get_species_info}} to join readable names onto species_id values,
+#'  \code{\link{get_detections}} for row-level detection data
 #' @export
 #'
 #' @examples
