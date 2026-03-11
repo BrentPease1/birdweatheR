@@ -10,12 +10,12 @@
 #' @param limit Maximum number of readings to return per station (default: NULL,
 #'   returns all). When multiple station IDs are provided, limit applies to each
 #'   station individually.
+#' @param max_retries Maximum number of retry attempts per page on transient
+#'   errors (default: 5). Retries use exponential backoff with jitter.
 #'
 #' @return A data.table with columns:
 #'   station_id, timestamp, temperature, humidity, barometric_pressure,
 #'   aqi, eco2, voc, sound_pressure_level
-#' @seealso \code{\link{get_stations}} to find valid PUC station IDs,
-#'  \code{\link{get_detections}} to pair sensor readings with bird detections
 #' @export
 #'
 #' @examples
@@ -36,10 +36,11 @@
 #'   to         = "2025-05-02T00:00:00.000Z"
 #' )
 #' }
-get_environment_data <- function(station_id = NULL,
-                                 from       = NULL,
-                                 to         = NULL,
-                                 limit      = NULL) {
+get_environment_data <- function(station_id  = NULL,
+                                 from        = NULL,
+                                 to          = NULL,
+                                 limit       = NULL,
+                                 max_retries = 5) {
 
   if (is.null(.birdweather_env$connection)) {
     stop("No API connection found. Please run connect_birdweather() first.")
@@ -129,15 +130,7 @@ get_environment_data <- function(station_id = NULL,
     }
 
     query_exec <- ghql::Query$new()$query('url_link', initial_query)
-    result <- .birdweather_env$connection$exec(query_exec$url_link,
-                variables = base_variables) |>
-      jsonlite::fromJSON(flatten = FALSE)
-
-    if (!is.null(result$errors)) {
-      message("API returned errors for station ", sid, ":")
-      print(result$errors)
-      return(NULL)
-    }
+    result     <- fetch_page_with_retry(query_exec, base_variables, max_retries = max_retries)
 
     env_hist <- result$data$station$sensors$environmentHistory
     edges    <- env_hist$edges
@@ -166,15 +159,7 @@ get_environment_data <- function(station_id = NULL,
       )
 
       query_exec <- ghql::Query$new()$query('url_link', following_query)
-      result <- .birdweather_env$connection$exec(query_exec$url_link,
-                  variables = page_variables) |>
-        jsonlite::fromJSON(flatten = FALSE)
-
-      if (!is.null(result$errors)) {
-        message("API error on page ", page, " - stopping.")
-        print(result$errors)
-        break
-      }
+      result     <- fetch_page_with_retry(query_exec, page_variables, max_retries = max_retries)
 
       env_hist <- result$data$station$sensors$environmentHistory
       edges    <- env_hist$edges
@@ -238,6 +223,8 @@ get_environment_data <- function(station_id = NULL,
 #' @param limit Maximum number of readings to return per station (default: NULL,
 #'   returns all). When multiple station IDs are provided, limit applies to each
 #'   station individually.
+#' @param max_retries Maximum number of retry attempts per page on transient
+#'   errors (default: 5). Retries use exponential backoff with jitter.
 #'
 #' @return A data.table with columns:
 #'   station_id, timestamp, clear, nir, f1, f2, f3, f4, f5, f6, f7, f8
@@ -261,10 +248,11 @@ get_environment_data <- function(station_id = NULL,
 #'   to         = "2025-05-02T00:00:00.000Z"
 #' )
 #' }
-get_light_data <- function(station_id = NULL,
-                           from       = NULL,
-                           to         = NULL,
-                           limit      = NULL) {
+get_light_data <- function(station_id  = NULL,
+                           from        = NULL,
+                           to          = NULL,
+                           limit       = NULL,
+                           max_retries = 5) {
 
   if (is.null(.birdweather_env$connection)) {
     stop("No API connection found. Please run connect_birdweather() first.")
@@ -363,15 +351,7 @@ get_light_data <- function(station_id = NULL,
     }
 
     query_exec <- ghql::Query$new()$query('url_link', initial_query)
-    result <- .birdweather_env$connection$exec(query_exec$url_link,
-                variables = base_variables) |>
-      jsonlite::fromJSON(flatten = FALSE)
-
-    if (!is.null(result$errors)) {
-      message("API returned errors for station ", sid, ":")
-      print(result$errors)
-      return(NULL)
-    }
+    result     <- fetch_page_with_retry(query_exec, base_variables, max_retries = max_retries)
 
     light_hist <- result$data$station$sensors$lightHistory
     edges      <- light_hist$edges
@@ -400,15 +380,7 @@ get_light_data <- function(station_id = NULL,
       )
 
       query_exec <- ghql::Query$new()$query('url_link', following_query)
-      result <- .birdweather_env$connection$exec(query_exec$url_link,
-                  variables = page_variables) |>
-        jsonlite::fromJSON(flatten = FALSE)
-
-      if (!is.null(result$errors)) {
-        message("API error on page ", page, " - stopping.")
-        print(result$errors)
-        break
-      }
+      result     <- fetch_page_with_retry(query_exec, page_variables, max_retries = max_retries)
 
       light_hist <- result$data$station$sensors$lightHistory
       edges      <- light_hist$edges
