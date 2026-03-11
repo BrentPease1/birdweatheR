@@ -8,7 +8,13 @@ automatically.
 ## Usage
 
 ``` r
-get_environment_data(station_id = NULL, from = NULL, to = NULL, limit = NULL)
+get_environment_data(
+  station_id = NULL,
+  from = NULL,
+  to = NULL,
+  limit = NULL,
+  max_retries = 5
+)
 ```
 
 ## Arguments
@@ -31,17 +37,15 @@ get_environment_data(station_id = NULL, from = NULL, to = NULL, limit = NULL)
   returns all). When multiple station IDs are provided, limit applies to
   each station individually.
 
+- max_retries:
+
+  Maximum number of retry attempts per page on transient errors
+  (default: 5). Retries use exponential backoff with jitter.
+
 ## Value
 
 A data.table with columns: station_id, timestamp, temperature, humidity,
 barometric_pressure, aqi, eco2, voc, sound_pressure_level
-
-## See also
-
-[`get_stations`](https://brentpease1.github.io/birdweatheR/reference/get_stations.md)
-to find valid PUC station IDs,
-[`get_detections`](https://brentpease1.github.io/birdweatheR/reference/get_detections.md)
-to pair sensor readings with bird detections
 
 ## Examples
 

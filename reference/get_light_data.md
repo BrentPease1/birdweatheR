@@ -7,7 +7,13 @@ near-infrared. Handles pagination automatically.
 ## Usage
 
 ``` r
-get_light_data(station_id = NULL, from = NULL, to = NULL, limit = NULL)
+get_light_data(
+  station_id = NULL,
+  from = NULL,
+  to = NULL,
+  limit = NULL,
+  max_retries = 5
+)
 ```
 
 ## Arguments
@@ -29,6 +35,11 @@ get_light_data(station_id = NULL, from = NULL, to = NULL, limit = NULL)
   Maximum number of readings to return per station (default: NULL,
   returns all). When multiple station IDs are provided, limit applies to
   each station individually.
+
+- max_retries:
+
+  Maximum number of retry attempts per page on transient errors
+  (default: 5). Retries use exponential backoff with jitter.
 
 ## Value
 

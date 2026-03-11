@@ -48,7 +48,13 @@ eCO2, VOC, and sound pressure level. Handles pagination automatically.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">get_environment_data</span><span class="op">(</span>station_id <span class="op">=</span> <span class="cn">NULL</span>, from <span class="op">=</span> <span class="cn">NULL</span>, to <span class="op">=</span> <span class="cn">NULL</span>, limit <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">get_environment_data</span><span class="op">(</span></span>
+<span>  station_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  from <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  to <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  limit <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  max_retries <span class="op">=</span> <span class="fl">5</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -72,17 +78,17 @@ eCO2, VOC, and sound pressure level. Handles pagination automatically.</p>
 returns all). When multiple station IDs are provided, limit applies to each
 station individually.</p></dd>
 
+
+<dt id="arg-max-retries">max_retries<a class="anchor" aria-label="anchor" href="#arg-max-retries"></a></dt>
+<dd><p>Maximum number of retry attempts per page on transient
+errors (default: 5). Retries use exponential backoff with jitter.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A data.table with columns:
 station_id, timestamp, temperature, humidity, barometric_pressure,
 aqi, eco2, voc, sound_pressure_level</p>
-    </div>
-    <div class="section level2">
-    <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p><code><a href="get_stations.html">get_stations</a></code> to find valid PUC station IDs,
-<code><a href="get_detections.html">get_detections</a></code> to pair sensor readings with bird detections</p></div>
     </div>
 
     <div class="section level2">
