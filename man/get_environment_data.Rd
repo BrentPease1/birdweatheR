@@ -4,7 +4,13 @@
 \alias{get_environment_data}
 \title{Get BirdWeather PUC Environmental Sensor Data}
 \usage{
-get_environment_data(station_id = NULL, from = NULL, to = NULL, limit = NULL)
+get_environment_data(
+  station_id = NULL,
+  from = NULL,
+  to = NULL,
+  limit = NULL,
+  max_retries = 5
+)
 }
 \arguments{
 \item{station_id}{A single station ID or character vector of station IDs (required)}
@@ -16,6 +22,9 @@ get_environment_data(station_id = NULL, from = NULL, to = NULL, limit = NULL)
 \item{limit}{Maximum number of readings to return per station (default: NULL,
 returns all). When multiple station IDs are provided, limit applies to each
 station individually.}
+
+\item{max_retries}{Maximum number of retry attempts per page on transient
+errors (default: 5). Retries use exponential backoff with jitter.}
 }
 \value{
 A data.table with columns:
@@ -45,8 +54,4 @@ env <- get_environment_data(
   to         = "2025-05-02T00:00:00.000Z"
 )
 }
-}
-\seealso{
-\code{\link{get_stations}} to find valid PUC station IDs,
-\code{\link{get_detections}} to pair sensor readings with bird detections
 }
