@@ -94,15 +94,9 @@ get_tod_counts <- function(species_id      = NULL,
     stop("No API connection found. Please run connect_birdweather() first.")
   }
 
-  # Validate date format
-  if (!is.null(from) && !grepl("^\\d{4}-\\d{2}-\\d{2}T", from)) {
-    stop("'from' must be in ISO8601 format with zero-padded month and day ",
-         "(e.g. '2025-05-01T00:00:00.000Z'). Got: ", from)
-  }
-  if (!is.null(to) && !grepl("^\\d{4}-\\d{2}-\\d{2}T", to)) {
-    stop("'to' must be in ISO8601 format with zero-padded month and day ",
-         "(e.g. '2025-05-07T00:00:00.000Z'). Got: ", to)
-  }
+  # Normalize date inputs — accepts strings, Date, POSIXct, lubridate, etc.
+  from <- normalize_datetime(from, "from")
+  to   <- normalize_datetime(to,   "to")
 
   if (is.null(species_id)) {
     stop("species_id is required for get_tod_counts(). ",
@@ -175,7 +169,7 @@ get_tod_counts <- function(species_id      = NULL,
 
     query_exec <- ghql::Query$new()$query('url_link', query)
     result <- .birdweather_env$connection$exec(query_exec$url_link,
-                variables = base_variables) |>
+                                               variables = base_variables) |>
       jsonlite::fromJSON(flatten = FALSE)
 
     if (!is.null(result$errors)) {

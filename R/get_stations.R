@@ -52,6 +52,10 @@ get_stations <- function(query = NULL,
     stop("No API connection found. Please run connect_birdweather() first.")
   }
 
+  # Normalize date inputs — accepts strings, Date, POSIXct, lubridate, etc.
+  from <- normalize_datetime(from, "from")
+  to   <- normalize_datetime(to,   "to")
+
   # -------------------------------------------------------
   # Build variables incrementally - only what is non-NULL
   # -------------------------------------------------------

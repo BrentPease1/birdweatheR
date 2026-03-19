@@ -64,6 +64,10 @@ get_counts <- function(from          = NULL,
     stop("No API connection found. Please run connect_birdweather() first.")
   }
 
+  # Normalize date inputs — accepts strings, Date, POSIXct, lubridate, etc.
+  from <- normalize_datetime(from, "from")
+  to   <- normalize_datetime(to,   "to")
+
   base_variables <- list()
 
   if (!is.null(from) && !is.null(to)) {
@@ -112,8 +116,8 @@ get_counts <- function(from          = NULL,
 
   query_exec <- ghql::Query$new()$query('url_link', query)
   result <- .birdweather_env$connection$exec(
-              query_exec$url_link,
-              variables = if (length(base_variables) > 0) base_variables else NULL) |>
+    query_exec$url_link,
+    variables = if (length(base_variables) > 0) base_variables else NULL) |>
     jsonlite::fromJSON(flatten = FALSE)
 
   if (!is.null(result$errors)) {
