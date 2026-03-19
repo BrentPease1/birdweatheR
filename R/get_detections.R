@@ -6,10 +6,20 @@
 #' into individual columns. Includes automatic retry with exponential backoff
 #' to handle transient 504/server errors mid-pagination.
 #'
-#' @param from Start datetime as a string in ISO8601 format
+#' @param from Start datetime as a string in ISO8601 format in UTC
 #'   (e.g. "2025-01-01T00:00:00.000Z"). Defaults to 24 hours ago if NULL.
-#' @param to End datetime as a string in ISO8601 format
+#'   If \code{tz} is supplied, this should instead be a local datetime string
+#'   without a trailing Z (e.g. "2025-05-16T00:00:00") and it will be
+#'   converted to UTC automatically before the query.
+#' @param to End datetime as a string in ISO8601 format in UTC
 #'   (e.g. "2025-01-02T00:00:00.000Z"). Defaults to now if NULL.
+#'   See \code{from} for local-time usage with \code{tz}.
+#' @param tz Optional. An Olson timezone string (e.g. \code{"America/Chicago"},
+#'   \code{"Europe/London"}) specifying the local timezone of the \code{from}
+#'   and \code{to} strings. When supplied, both datetimes are converted to UTC
+#'   before the API query. When NULL (the default), \code{from} and \code{to}
+#'   are passed to the API as-is and are assumed to already be in UTC. Use
+#'   \code{OlsonNames()} for valid timezone strings.
 #' @param station_ids Character vector of station IDs to filter on (optional)
 #' @param station_types Character vector of station types to filter on (optional).
 #'   Known types include "puc" (BirdWeather PUC units), "birdnetpi"
@@ -82,6 +92,8 @@
 #' )
 #'
 #' # Filter by bounding box (Missouri/Illinois/Kentucky region)
+#' # NOTE: from/to are UTC. A "2025-05-12 midnight" in Chicago (CDT, UTC-5)
+#' # would be "2025-05-12T05:00:00.000Z" — use tz= to avoid manual conversion.
 #' dets <- get_detections(
 #'   from  = "2025-05-12T00:00:00.000Z",
 #'   to    = "2025-05-18T00:00:00.000Z",
@@ -89,9 +101,22 @@
 #'   sw    = list(lat = 36.0, lon = -96.0),
 #'   limit = 10000
 #' )
+#'
+#' # Supply local times directly using tz — no manual UTC conversion needed.
+#' # from/to are interpreted as America/Chicago local time and converted
+#' # to UTC before the query.
+#' dets <- get_detections(
+#'   from  = "2025-05-16T00:00:00",
+#'   to    = "2025-05-16T23:59:59",
+#'   tz    = "America/Chicago",
+#'   ne    = list(lat = 38.95, lon = -89.85),
+#'   sw    = list(lat = 38.35, lon = -90.75),
+#'   limit = 5000
+#' )
 #' }
 get_detections <- function(from           = NULL,
                            to             = NULL,
+                           tz             = NULL,
                            station_ids    = NULL,
                            station_types  = NULL,
                            species_ids    = NULL,
@@ -110,9 +135,57 @@ get_detections <- function(from           = NULL,
     stop("No API connection found. Please run connect_birdweather() first.")
   }
 
-  # Normalize date inputs — accepts strings, Date, POSIXct, lubridate, etc.
-  from <- normalize_datetime(from, "from")
-  to   <- normalize_datetime(to,   "to")
+  # Validate date format
+  if (!is.null(from) && !grepl("^\\d{4}-\\d{2}-\\d{2}T", from)) {
+    stop("'from' must be in ISO8601 format with zero-padded month and day ",
+         "(e.g. '2025-05-01T00:00:00.000Z'). Got: ", from)
+  }
+  if (!is.null(to) && !grepl("^\\d{4}-\\d{2}-\\d{2}T", to)) {
+    stop("'to' must be in ISO8601 format with zero-padded month and day ",
+         "(e.g. '2025-05-07T00:00:00.000Z'). Got: ", to)
+  }
+
+  # -------------------------------------------------------
+  # Timezone handling
+  # -------------------------------------------------------
+  if (!is.null(tz)) {
+    # Validate the timezone string before using it
+    if (!tz %in% OlsonNames()) {
+      stop("'tz' does not appear to be a valid Olson timezone string. ",
+           "Run OlsonNames() for valid options. Got: ", tz)
+    }
+
+    local_to_utc <- function(dt_str, tz) {
+      # Accept strings with or without trailing Z
+      dt_str <- sub("Z$", "", dt_str)
+      dt <- as.POSIXct(dt_str, tz = tz, format = "%Y-%m-%dT%H:%M:%S")
+      if (is.na(dt)) {
+        stop("Could not parse datetime string '", dt_str, "' with tz = '", tz, "'. ",
+             "Expected format: 'YYYY-MM-DDTHH:MM:SS'.")
+      }
+      format(dt, format = "%Y-%m-%dT%H:%M:%S.000Z", tz = "UTC")
+    }
+
+    if (!is.null(from)) {
+      from_utc <- local_to_utc(from, tz)
+      message("tz = '", tz, "': converting 'from' ", from, " -> ", from_utc)
+      from <- from_utc
+    }
+    if (!is.null(to)) {
+      to_utc <- local_to_utc(to, tz)
+      message("tz = '", tz, "': converting 'to'   ", to, " -> ", to_utc)
+      to <- to_utc
+    }
+
+  } else if (!is.null(from) || !is.null(to)) {
+    # No tz supplied — warn once so users know the expectation
+    warning(
+      "from/to are treated as UTC. If your times are in a local timezone, ",
+      "supply tz = \"Your/Timezone\" (e.g. tz = \"America/Chicago\") to convert ",
+      "automatically. Run OlsonNames() for valid timezone strings.",
+      call. = FALSE
+    )
+  }
 
   # -------------------------------------------------------
   # Resolve species names to IDs if provided
