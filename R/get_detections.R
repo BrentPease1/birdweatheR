@@ -318,6 +318,15 @@ get_detections <- function(from           = NULL,
   following_query <- build_query(include_after = TRUE)
 
   # -------------------------------------------------------
+  # Helper: format seconds as "Xs" or "Xm Ys"
+  # -------------------------------------------------------
+  format_seconds <- function(s) {
+    s <- round(s)
+    if (s < 60) return(paste0(s, "s"))
+    paste0(s %/% 60, "m ", s %% 60, "s")
+  }
+
+  # -------------------------------------------------------
   # Execute first page (with retry)
   # -------------------------------------------------------
   query_exec <- ghql::Query$new()$query('url_link', initial_query)
@@ -335,7 +344,17 @@ get_detections <- function(from           = NULL,
   after_cursor <- result$data$detections$pageInfo$endCursor
   total        <- result$data$detections$totalCount
 
-  message("Total detections matching filters: ", total)
+  # Total we actually intend to fetch (respects limit)
+  total_to_fetch  <- if (is.null(limit)) total else min(total, limit)
+  n_pages_total   <- ceiling(total_to_fetch / 250)
+
+  message("Total detections matching filters: ", format(total, big.mark = ","))
+
+  if (n_pages_total > 1) {
+    est_secs <- (n_pages_total - 1) * 1.5
+    message("Estimated download time: ~", format_seconds(est_secs),
+            " (", n_pages_total, " pages of 250)")
+  }
 
   if (total > 10000 && is.null(limit)) {
     message("Note: ", format(total, big.mark = ","), " detections found. ",
@@ -343,12 +362,15 @@ get_detections <- function(from           = NULL,
             "Set limit = 1000 to retrieve a subset instead.")
   }
 
-  message("Fetched page 1 - ", nrow(nodes), " detections")
+  message("Fetched page 1/", n_pages_total, " — ",
+          format(nrow(nodes), big.mark = ","), " detections")
+
 
   # -------------------------------------------------------
   # Paginate until limit is reached or no more pages
   # -------------------------------------------------------
   page <- 1
+  page_times <- numeric(0)  # rolling record of seconds per page
 
   while (isTRUE(has_next) && (is.null(limit) || sum(sapply(all_pages, nrow)) < limit)) {
 
@@ -365,7 +387,12 @@ get_detections <- function(from           = NULL,
     )
 
     query_exec <- ghql::Query$new()$query('url_link', following_query)
+
+    t0     <- proc.time()[["elapsed"]]
     result     <- fetch_page_with_retry(query_exec, page_variables, max_retries = max_retries)
+    t1     <- proc.time()[["elapsed"]]
+
+    page_times <- c(page_times, t1 - t0 + 1)  # +1 for the Sys.sleep(1)
 
     nodes <- result$data$detections$nodes
 
@@ -378,13 +405,28 @@ get_detections <- function(from           = NULL,
     has_next     <- result$data$detections$pageInfo$hasNextPage
     after_cursor <- result$data$detections$pageInfo$endCursor
 
-    message("Fetched page ", page, " - ", nrow(nodes), " detections")
+    fetched_so_far  <- sum(sapply(all_pages, nrow))
+    pct_done        <- round(fetched_so_far / total_to_fetch * 100)
+    pages_remaining <- n_pages_total - page
+    avg_page_time   <- mean(page_times)
+    eta_secs        <- pages_remaining * avg_page_time
+
+    eta_str <- if (pages_remaining > 0) {
+      paste0(" — ~", format_seconds(eta_secs), " remaining")
+    } else {
+      ""
+    }
+
+    message("Fetched page ", page, "/", n_pages_total,
+            " (", format(fetched_so_far, big.mark = ","),
+            " / ", format(total_to_fetch, big.mark = ","),
+            ", ", pct_done, "%)", eta_str)
   }
 
   # -------------------------------------------------------
   # Bind all pages and return
   # -------------------------------------------------------
   final <- data.table::rbindlist(all_pages, fill = TRUE)
-  message("Done. Returning ", nrow(final), " detections.")
+  message("Done. Returning ", format(nrow(final), big.mark = ","), " detections.")
   final
 }
