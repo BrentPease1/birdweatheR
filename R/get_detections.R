@@ -114,49 +114,44 @@
 #'   limit = 5000
 #' )
 #' }
-get_detections <- function(from           = NULL,
-                           to             = NULL,
-                           tz             = NULL,
-                           station_ids    = NULL,
-                           station_types  = NULL,
-                           species_ids    = NULL,
-                           species_names  = NULL,
-                           continents     = NULL,
-                           countries      = NULL,
-                           confidence_gte = NULL,
+get_detections <- function(from            = NULL,
+                           to              = NULL,
+                           tz              = NULL,
+                           station_ids     = NULL,
+                           station_types   = NULL,
+                           species_ids     = NULL,
+                           species_names   = NULL,
+                           continents      = NULL,
+                           countries       = NULL,
+                           confidence_gte  = NULL,
                            probability_gte = NULL,
                            probability_lte = NULL,
-                           ne             = NULL,
-                           sw             = NULL,
-                           limit          = NULL,
-                           max_retries    = 5) {
+                           ne              = NULL,
+                           sw              = NULL,
+                           limit           = NULL,
+                           max_retries     = 5) {
 
   if (is.null(.birdweather_env$connection)) {
     stop("No API connection found. Please run connect_birdweather() first.")
   }
 
-  # Validate date format
-  if (!is.null(from) && !grepl("^\\d{4}-\\d{2}-\\d{2}T", from)) {
-    stop("'from' must be in ISO8601 format with zero-padded month and day ",
-         "(e.g. '2025-05-01T00:00:00.000Z'). Got: ", from)
-  }
-  if (!is.null(to) && !grepl("^\\d{4}-\\d{2}-\\d{2}T", to)) {
-    stop("'to' must be in ISO8601 format with zero-padded month and day ",
-         "(e.g. '2025-05-07T00:00:00.000Z'). Got: ", to)
-  }
+  # -------------------------------------------------------
+  # Normalize date inputs (accepts "YYYY-MM-DD", full ISO8601,
+  # Date, POSIXct — mirrors behaviour of other get_* functions)
+  # -------------------------------------------------------
+  from <- normalize_datetime(from, "from")
+  to   <- normalize_datetime(to,   "to")
 
   # -------------------------------------------------------
   # Timezone handling
   # -------------------------------------------------------
   if (!is.null(tz)) {
-    # Validate the timezone string before using it
     if (!tz %in% OlsonNames()) {
       stop("'tz' does not appear to be a valid Olson timezone string. ",
            "Run OlsonNames() for valid options. Got: ", tz)
     }
 
     local_to_utc <- function(dt_str, tz) {
-      # Accept strings with or without trailing Z
       dt_str <- sub("Z$", "", dt_str)
       dt <- as.POSIXct(dt_str, tz = tz, format = "%Y-%m-%dT%H:%M:%S")
       if (is.na(dt)) {
@@ -178,13 +173,20 @@ get_detections <- function(from           = NULL,
     }
 
   } else if (!is.null(from) || !is.null(to)) {
-    # No tz supplied — warn once so users know the expectation
-    warning(
-      "from/to are treated as UTC. If your times are in a local timezone, ",
-      "supply tz = \"Your/Timezone\" (e.g. tz = \"America/Chicago\") to convert ",
-      "automatically. Run OlsonNames() for valid timezone strings.",
-      call. = FALSE
-    )
+    # Only warn if the string looks like a local time (has a T but no trailing Z
+    # and no UTC offset), meaning the user may not have intended UTC.
+    is_ambiguous <- function(x) {
+      !is.null(x) && grepl("T", x) && !grepl("Z$|[+-]\\d{2}:\\d{2}$", x)
+    }
+    if (is_ambiguous(from) || is_ambiguous(to)) {
+      warning(
+        "from/to appear to be local times (no UTC indicator). ",
+        "Supply tz = \"Your/Timezone\" (e.g. tz = \"America/Chicago\") to convert ",
+        "automatically, or append 'Z' if they are already UTC. ",
+        "Run OlsonNames() for valid timezone strings.",
+        call. = FALSE
+      )
+    }
   }
 
   # -------------------------------------------------------
@@ -192,7 +194,6 @@ get_detections <- function(from           = NULL,
   # -------------------------------------------------------
   if (!is.null(species_names)) {
     looked_up <- lapply(species_names, function(name) {
-      # Strip scientific name in parentheses if user copied from output
       name <- trimws(gsub("\\(.*\\)", "", name))
 
       found <- find_species(name, limit = 10)
@@ -234,49 +235,48 @@ get_detections <- function(from           = NULL,
   if (!is.null(from) && !is.null(to)) {
     base_variables$period <- list(from = from, to = to)
   }
-  if (!is.null(station_ids))    base_variables$stationIds    <- as.list(as.character(station_ids))
-  if (!is.null(species_ids))    base_variables$speciesIds    <- as.list(as.character(species_ids))
-  if (!is.null(continents))     base_variables$continents    <- as.list(continents)
-  if (!is.null(countries))      base_variables$countries     <- as.list(countries)
-  if (!is.null(confidence_gte)) base_variables$confidenceGte <- confidence_gte
+  if (!is.null(station_ids))     base_variables$stationIds     <- as.list(as.character(station_ids))
+  if (!is.null(species_ids))     base_variables$speciesIds     <- as.list(as.character(species_ids))
+  if (!is.null(continents))      base_variables$continents     <- as.list(continents)
+  if (!is.null(countries))       base_variables$countries      <- as.list(countries)
+  if (!is.null(confidence_gte))  base_variables$confidenceGte  <- confidence_gte
   if (!is.null(probability_gte)) base_variables$probabilityGte <- probability_gte
   if (!is.null(probability_lte)) base_variables$probabilityLte <- probability_lte
-  if (!is.null(ne))             base_variables$ne            <- list(lat = ne$lat, lon = ne$lon)
-  if (!is.null(sw))             base_variables$sw            <- list(lat = sw$lat, lon = sw$lon)
-  if (!is.null(station_types))  base_variables$stationTypes  <- as.list(station_types)
+  if (!is.null(ne))              base_variables$ne             <- list(lat = ne$lat, lon = ne$lon)
+  if (!is.null(sw))              base_variables$sw             <- list(lat = sw$lat, lon = sw$lon)
+  if (!is.null(station_types))   base_variables$stationTypes   <- as.list(station_types)
 
   # -------------------------------------------------------
   # Build query string dynamically from active variables
-  # so query signature always matches variables exactly
   # -------------------------------------------------------
   var_types <- c(
-    first         = "$first: Int",
-    period        = "$period: InputDuration",
-    stationIds    = "$stationIds: [ID!]",
-    stationTypes  = "$stationTypes: [String!]",
-    speciesIds    = "$speciesIds: [ID!]",
-    continents    = "$continents: [String!]",
-    countries     = "$countries: [String!]",
-    confidenceGte = "$confidenceGte: Float",
+    first          = "$first: Int",
+    period         = "$period: InputDuration",
+    stationIds     = "$stationIds: [ID!]",
+    stationTypes   = "$stationTypes: [String!]",
+    speciesIds     = "$speciesIds: [ID!]",
+    continents     = "$continents: [String!]",
+    countries      = "$countries: [String!]",
+    confidenceGte  = "$confidenceGte: Float",
     probabilityGte = "$probabilityGte: Float",
     probabilityLte = "$probabilityLte: Float",
-    ne            = "$ne: InputLocation",
-    sw            = "$sw: InputLocation"
+    ne             = "$ne: InputLocation",
+    sw             = "$sw: InputLocation"
   )
 
   arg_names <- c(
-    first         = "first: $first",
-    period        = "period: $period",
-    stationIds    = "stationIds: $stationIds",
-    stationTypes  = "stationTypes: $stationTypes",
-    speciesIds    = "speciesIds: $speciesIds",
-    continents    = "continents: $continents",
-    countries     = "countries: $countries",
-    confidenceGte = "confidenceGte: $confidenceGte",
+    first          = "first: $first",
+    period         = "period: $period",
+    stationIds     = "stationIds: $stationIds",
+    stationTypes   = "stationTypes: $stationTypes",
+    speciesIds     = "speciesIds: $speciesIds",
+    continents     = "continents: $continents",
+    countries      = "countries: $countries",
+    confidenceGte  = "confidenceGte: $confidenceGte",
     probabilityGte = "probabilityGte: $probabilityGte",
     probabilityLte = "probabilityLte: $probabilityLte",
-    ne            = "ne: $ne",
-    sw            = "sw: $sw"
+    ne             = "ne: $ne",
+    sw             = "sw: $sw"
   )
 
   active             <- names(var_types)[names(var_types) %in% names(base_variables)]
@@ -357,19 +357,16 @@ get_detections <- function(from           = NULL,
   }
 
   if (total > 10000 && is.null(limit)) {
-    message("Note: ", format(total, big.mark = ","), " detections found. ",
-            "This may take a while to download. ",
-            "Set limit = 1000 to retrieve a subset instead.")
+    message("Tip: set limit = 1000 to retrieve a subset first.")
   }
 
   message("Fetched page 1/", n_pages_total, " — ",
           format(nrow(nodes), big.mark = ","), " detections")
 
-
   # -------------------------------------------------------
   # Paginate until limit is reached or no more pages
   # -------------------------------------------------------
-  page <- 1
+  page       <- 1
   page_times <- numeric(0)  # rolling record of seconds per page
 
   while (isTRUE(has_next) && (is.null(limit) || sum(sapply(all_pages, nrow)) < limit)) {
@@ -389,7 +386,7 @@ get_detections <- function(from           = NULL,
     query_exec <- ghql::Query$new()$query('url_link', following_query)
 
     t0     <- proc.time()[["elapsed"]]
-    result     <- fetch_page_with_retry(query_exec, page_variables, max_retries = max_retries)
+    result <- fetch_page_with_retry(query_exec, page_variables, max_retries = max_retries)
     t1     <- proc.time()[["elapsed"]]
 
     page_times <- c(page_times, t1 - t0 + 1)  # +1 for the Sys.sleep(1)
@@ -402,8 +399,8 @@ get_detections <- function(from           = NULL,
     }
 
     all_pages[[page]] <- flatten_nodes(nodes)
-    has_next     <- result$data$detections$pageInfo$hasNextPage
-    after_cursor <- result$data$detections$pageInfo$endCursor
+    has_next          <- result$data$detections$pageInfo$hasNextPage
+    after_cursor      <- result$data$detections$pageInfo$endCursor
 
     fetched_so_far  <- sum(sapply(all_pages, nrow))
     pct_done        <- round(fetched_so_far / total_to_fetch * 100)
