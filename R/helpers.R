@@ -3,6 +3,86 @@
 # These are internal helpers not exported to the user.
 #
 utils::globalVariables(":=")
+
+#' Normalize a date/datetime input to ISO8601 UTC string
+#'
+#' Accepts a wide variety of inputs — plain date strings ("2025-05-01"),
+#' full ISO8601 strings ("2025-05-01T00:00:00.000Z"), Date objects,
+#' POSIXct/POSIXlt objects, or lubridate date-times — and returns a
+#' zero-padded ISO8601 string suitable for the BirdWeather API.
+#' When a bare date is supplied (no time component), midnight UTC is assumed.
+#'
+#' @param x A date or datetime value (character, Date, POSIXct, POSIXlt)
+#' @param arg_name Name of the argument, used in error messages
+#' @return A character string in "YYYY-MM-DDTHH:MM:SS.000Z" format
+#' @noRd
+normalize_datetime <- function(x, arg_name = "date") {
+  if (is.null(x)) return(NULL)
+
+  # Already a well-formed ISO8601 string — pass through unchanged
+  if (is.character(x) && grepl("^\\d{4}-\\d{2}-\\d{2}T", x)) {
+    return(x)
+  }
+
+  # Plain date string "YYYY-MM-DD" — append midnight UTC
+  if (is.character(x) && grepl("^\\d{4}-\\d{2}-\\d{2}$", x)) {
+    return(paste0(x, "T00:00:00.000Z"))
+  }
+
+  # Date object
+  if (inherits(x, "Date")) {
+    return(paste0(format(x, "%Y-%m-%d"), "T00:00:00.000Z"))
+  }
+
+  # POSIXct / POSIXlt (covers lubridate output too)
+  if (inherits(x, c("POSIXct", "POSIXlt"))) {
+    return(format(as.POSIXct(x), "%Y-%m-%dT%H:%M:%S.000Z", tz = "UTC"))
+  }
+
+  stop("'", arg_name, "' must be a date string (e.g. '2025-05-01'), ",
+       "a full ISO8601 string (e.g. '2025-05-01T00:00:00.000Z'), ",
+       "or a Date/POSIXct object. Got: ", class(x)[1])
+}
+
+#' Normalize a date/datetime input to ISO8601 UTC string
+#'
+#' Accepts a wide variety of inputs — plain date strings ("2025-05-01"),
+#' full ISO8601 strings ("2025-05-01T00:00:00.000Z"), Date objects,
+#' POSIXct/POSIXlt objects, or lubridate date-times — and returns a
+#' zero-padded ISO8601 string suitable for the BirdWeather API.
+#' When a bare date is supplied (no time component), midnight UTC is assumed.
+#'
+#' @param x A date or datetime value (character, Date, POSIXct, POSIXlt)
+#' @param arg_name Name of the argument, used in error messages
+#' @return A character string in "YYYY-MM-DDTHH:MM:SS.000Z" format
+#' @noRd
+normalize_datetime <- function(x, arg_name = "date") {
+  if (is.null(x)) return(NULL)
+
+  # Already a well-formed ISO8601 string — pass through unchanged
+  if (is.character(x) && grepl("^\\d{4}-\\d{2}-\\d{2}T", x)) {
+    return(x)
+  }
+
+  # Plain date string "YYYY-MM-DD" — append midnight UTC
+  if (is.character(x) && grepl("^\\d{4}-\\d{2}-\\d{2}$", x)) {
+    return(paste0(x, "T00:00:00.000Z"))
+  }
+
+  # Date object
+  if (inherits(x, "Date")) {
+    return(paste0(format(x, "%Y-%m-%d"), "T00:00:00.000Z"))
+  }
+
+  # POSIXct / POSIXlt (covers lubridate output too)
+  if (inherits(x, c("POSIXct", "POSIXlt"))) {
+    return(format(as.POSIXct(x), "%Y-%m-%dT%H:%M:%S.000Z", tz = "UTC"))
+  }
+
+  stop("'", arg_name, "' must be a date string (e.g. '2025-05-01'), ",
+       "a full ISO8601 string (e.g. '2025-05-01T00:00:00.000Z'), ",
+       "or a Date/POSIXct object. Got: ", class(x)[1])
+}
 #' Flatten a page of detection nodes into a clean data.table
 #'
 #' Takes the raw nested data frame returned by fromJSON for a page of
