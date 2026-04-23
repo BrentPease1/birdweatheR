@@ -25,11 +25,15 @@ get_environment_data(
 
 - from:
 
-  Start datetime in ISO8601 format (e.g. "2025-01-01T00:00:00.000Z")
+  Start datetime in ISO8601 format (e.g. "2025-01-01T00:00:00.000Z").
+  BirdWeather API resolves to calendar days; sub-day filtering is done
+  through package.
 
 - to:
 
-  End datetime in ISO8601 format (e.g. "2025-01-02T00:00:00.000Z")
+  End datetime in ISO8601 format (e.g. "2025-01-02T00:00:00.000Z") \#'
+  BirdWeather API resolves to calendar days; sub-day filtering is done
+  through package.
 
 - limit:
 

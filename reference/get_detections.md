@@ -13,6 +13,7 @@ mid-pagination.
 get_detections(
   from = NULL,
   to = NULL,
+  tz = NULL,
   station_ids = NULL,
   station_types = NULL,
   species_ids = NULL,
@@ -33,13 +34,29 @@ get_detections(
 
 - from:
 
-  Start datetime as a string in ISO8601 format (e.g.
-  "2025-01-01T00:00:00.000Z"). Defaults to 24 hours ago if NULL.
+  Start datetime as a string in ISO8601 format in UTC (e.g.
+  "2025-01-01T00:00:00.000Z"). Defaults to 24 hours ago if NULL. If `tz`
+  is supplied, this should instead be a local datetime string without a
+  trailing Z (e.g. "2025-05-16T00:00:00") and it will be converted to
+  UTC automatically before the query. Note: the BirdWeather API resolves
+  the period filter to calendar days; sub-day filtering is done by the
+  package.
 
 - to:
 
-  End datetime as a string in ISO8601 format (e.g.
-  "2025-01-02T00:00:00.000Z"). Defaults to now if NULL.
+  End datetime as a string in ISO8601 format in UTC (e.g.
+  "2025-01-02T00:00:00.000Z"). Defaults to now if NULL. See `from` for
+  local-time usage with `tz`.
+
+- tz:
+
+  Optional. An Olson timezone string (e.g. `"America/Chicago"`,
+  `"Europe/London"`) specifying the local timezone of the `from` and
+  `to` strings. When supplied, both datetimes are converted to UTC
+  before the API query. When NULL (the default), `from` and `to` are
+  passed to the API as-is and are assumed to already be in UTC. Use
+  [`OlsonNames()`](https://rdrr.io/r/base/timezones.html) for valid
+  timezone strings.
 
 - station_ids:
 
@@ -159,12 +176,26 @@ dets <- get_detections(
 )
 
 # Filter by bounding box (Missouri/Illinois/Kentucky region)
+# NOTE: from/to are UTC. A "2025-05-12 midnight" in Chicago (CDT, UTC-5)
+# would be "2025-05-12T05:00:00.000Z" — use tz= to avoid manual conversion.
 dets <- get_detections(
   from  = "2025-05-12T00:00:00.000Z",
   to    = "2025-05-18T00:00:00.000Z",
   ne    = list(lat = 42.0, lon = -85.0),
   sw    = list(lat = 36.0, lon = -96.0),
   limit = 10000
+)
+
+# Supply local times directly using tz — no manual UTC conversion needed.
+# from/to are interpreted as America/Chicago local time and converted
+# to UTC before the query.
+dets <- get_detections(
+  from  = "2025-05-16T00:00:00",
+  to    = "2025-05-16T23:59:59",
+  tz    = "America/Chicago",
+  ne    = list(lat = 38.95, lon = -89.85),
+  sw    = list(lat = 38.35, lon = -90.75),
+  limit = 5000
 )
 } # }
 ```

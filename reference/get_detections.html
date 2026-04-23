@@ -57,6 +57,7 @@ to handle transient 504/server errors mid-pagination.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">get_detections</span><span class="op">(</span></span>
 <span>  from <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  to <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  tz <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  station_ids <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  station_types <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  species_ids <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -78,13 +79,28 @@ to handle transient 504/server errors mid-pagination.</p>
 
 
 <dl><dt id="arg-from">from<a class="anchor" aria-label="anchor" href="#arg-from"></a></dt>
-<dd><p>Start datetime as a string in ISO8601 format
-(e.g. "2025-01-01T00:00:00.000Z"). Defaults to 24 hours ago if NULL.</p></dd>
+<dd><p>Start datetime as a string in ISO8601 format in UTC
+(e.g. "2025-01-01T00:00:00.000Z"). Defaults to 24 hours ago if NULL.
+If <code>tz</code> is supplied, this should instead be a local datetime string
+without a trailing Z (e.g. "2025-05-16T00:00:00") and it will be
+converted to UTC automatically before the query. Note: the BirdWeather
+API resolves the period filter to calendar days; sub-day filtering is
+done by the package.</p></dd>
 
 
 <dt id="arg-to">to<a class="anchor" aria-label="anchor" href="#arg-to"></a></dt>
-<dd><p>End datetime as a string in ISO8601 format
-(e.g. "2025-01-02T00:00:00.000Z"). Defaults to now if NULL.</p></dd>
+<dd><p>End datetime as a string in ISO8601 format in UTC
+(e.g. "2025-01-02T00:00:00.000Z"). Defaults to now if NULL.
+See <code>from</code> for local-time usage with <code>tz</code>.</p></dd>
+
+
+<dt id="arg-tz">tz<a class="anchor" aria-label="anchor" href="#arg-tz"></a></dt>
+<dd><p>Optional. An Olson timezone string (e.g. <code>"America/Chicago"</code>,
+<code>"Europe/London"</code>) specifying the local timezone of the <code>from</code>
+and <code>to</code> strings. When supplied, both datetimes are converted to UTC
+before the API query. When NULL (the default), <code>from</code> and <code>to</code>
+are passed to the API as-is and are assumed to already be in UTC. Use
+<code><a href="https://rdrr.io/r/base/timezones.html" class="external-link">OlsonNames()</a></code> for valid timezone strings.</p></dd>
 
 
 <dt id="arg-station-ids">station_ids<a class="anchor" aria-label="anchor" href="#arg-station-ids"></a></dt>
@@ -202,12 +218,26 @@ station_lat, station_lon</p>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Filter by bounding box (Missouri/Illinois/Kentucky region)</span></span></span>
+<span class="r-in"><span><span class="co"># NOTE: from/to are UTC. A "2025-05-12 midnight" in Chicago (CDT, UTC-5)</span></span></span>
+<span class="r-in"><span><span class="co"># would be "2025-05-12T05:00:00.000Z" — use tz= to avoid manual conversion.</span></span></span>
 <span class="r-in"><span><span class="va">dets</span> <span class="op">&lt;-</span> <span class="fu">get_detections</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  from  <span class="op">=</span> <span class="st">"2025-05-12T00:00:00.000Z"</span>,</span></span>
 <span class="r-in"><span>  to    <span class="op">=</span> <span class="st">"2025-05-18T00:00:00.000Z"</span>,</span></span>
 <span class="r-in"><span>  ne    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>lat <span class="op">=</span> <span class="fl">42.0</span>, lon <span class="op">=</span> <span class="op">-</span><span class="fl">85.0</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  sw    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>lat <span class="op">=</span> <span class="fl">36.0</span>, lon <span class="op">=</span> <span class="op">-</span><span class="fl">96.0</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  limit <span class="op">=</span> <span class="fl">10000</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Supply local times directly using tz — no manual UTC conversion needed.</span></span></span>
+<span class="r-in"><span><span class="co"># from/to are interpreted as America/Chicago local time and converted</span></span></span>
+<span class="r-in"><span><span class="co"># to UTC before the query.</span></span></span>
+<span class="r-in"><span><span class="va">dets</span> <span class="op">&lt;-</span> <span class="fu">get_detections</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  from  <span class="op">=</span> <span class="st">"2025-05-16T00:00:00"</span>,</span></span>
+<span class="r-in"><span>  to    <span class="op">=</span> <span class="st">"2025-05-16T23:59:59"</span>,</span></span>
+<span class="r-in"><span>  tz    <span class="op">=</span> <span class="st">"America/Chicago"</span>,</span></span>
+<span class="r-in"><span>  ne    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>lat <span class="op">=</span> <span class="fl">38.95</span>, lon <span class="op">=</span> <span class="op">-</span><span class="fl">89.85</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  sw    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>lat <span class="op">=</span> <span class="fl">38.35</span>, lon <span class="op">=</span> <span class="op">-</span><span class="fl">90.75</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  limit <span class="op">=</span> <span class="fl">5000</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 </code></pre></div>
