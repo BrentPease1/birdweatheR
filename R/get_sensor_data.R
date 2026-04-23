@@ -5,8 +5,10 @@
 #' eCO2, VOC, and sound pressure level. Handles pagination automatically.
 #'
 #' @param station_id A single station ID or character vector of station IDs (required)
-#' @param from Start datetime in ISO8601 format (e.g. "2025-01-01T00:00:00.000Z")
+#' @param from Start datetime in ISO8601 format (e.g. "2025-01-01T00:00:00.000Z").
+#' BirdWeather API resolves to calendar days; sub-day filtering is done through package.
 #' @param to End datetime in ISO8601 format (e.g. "2025-01-02T00:00:00.000Z")
+#' #' BirdWeather API resolves to calendar days; sub-day filtering is done through package.
 #' @param limit Maximum number of readings to return per station (default: NULL,
 #'   returns all). When multiple station IDs are provided, limit applies to each
 #'   station individually.
@@ -211,7 +213,14 @@ get_environment_data <- function(station_id  = NULL,
               ", ", pct_done, "%)", eta_str)
     }
 
-    data.table::rbindlist(all_pages, fill = TRUE)
+    out <- data.table::rbindlist(all_pages, fill = TRUE)
+    if (!is.null(from) && !is.null(to)) {
+      from_posix <- as.POSIXct(sub("Z$", "", from), format = "%Y-%m-%dT%H:%M:%S", tz = "UTC")
+      to_posix   <- as.POSIXct(sub("Z$", "", to),   format = "%Y-%m-%dT%H:%M:%S", tz = "UTC")
+      ts_posix   <- as.POSIXct(sub("Z$", "", out$timestamp), format = "%Y-%m-%dT%H:%M:%S", tz = "UTC")
+      out        <- out[ts_posix >= from_posix & ts_posix <= to_posix]
+    }
+    out
   }
 
   # -------------------------------------------------------
@@ -254,8 +263,10 @@ get_environment_data <- function(station_id  = NULL,
 #' near-infrared. Handles pagination automatically.
 #'
 #' @param station_id A single station ID or character vector of station IDs (required)
-#' @param from Start datetime in ISO8601 format (e.g. "2025-01-01T00:00:00.000Z")
+#' @param from Start datetime in ISO8601 format (e.g. "2025-01-01T00:00:00.000Z").
+#' BirdWeather API resolves to calendar days; sub-day filtering is done through package.
 #' @param to End datetime in ISO8601 format (e.g. "2025-01-02T00:00:00.000Z")
+#' #' BirdWeather API resolves to calendar days; sub-day filtering is done through package.
 #' @param limit Maximum number of readings to return per station (default: NULL,
 #'   returns all). When multiple station IDs are provided, limit applies to each
 #'   station individually.
@@ -468,7 +479,14 @@ get_light_data <- function(station_id  = NULL,
               ", ", pct_done, "%)", eta_str)
     }
 
-    data.table::rbindlist(all_pages, fill = TRUE)
+    out <- data.table::rbindlist(all_pages, fill = TRUE)
+    if (!is.null(from) && !is.null(to)) {
+      from_posix <- as.POSIXct(sub("Z$", "", from), format = "%Y-%m-%dT%H:%M:%S", tz = "UTC")
+      to_posix   <- as.POSIXct(sub("Z$", "", to),   format = "%Y-%m-%dT%H:%M:%S", tz = "UTC")
+      ts_posix   <- as.POSIXct(sub("Z$", "", out$timestamp), format = "%Y-%m-%dT%H:%M:%S", tz = "UTC")
+      out        <- out[ts_posix >= from_posix & ts_posix <= to_posix]
+    }
+    out
   }
 
   # -------------------------------------------------------

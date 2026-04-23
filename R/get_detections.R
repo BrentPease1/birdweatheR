@@ -10,7 +10,9 @@
 #'   (e.g. "2025-01-01T00:00:00.000Z"). Defaults to 24 hours ago if NULL.
 #'   If \code{tz} is supplied, this should instead be a local datetime string
 #'   without a trailing Z (e.g. "2025-05-16T00:00:00") and it will be
-#'   converted to UTC automatically before the query.
+#'   converted to UTC automatically before the query. Note: the BirdWeather
+#'   API resolves the period filter to calendar days; sub-day filtering is
+#'   done by the package.
 #' @param to End datetime as a string in ISO8601 format in UTC
 #'   (e.g. "2025-01-02T00:00:00.000Z"). Defaults to now if NULL.
 #'   See \code{from} for local-time usage with \code{tz}.
@@ -424,6 +426,15 @@ get_detections <- function(from            = NULL,
   # Bind all pages and return
   # -------------------------------------------------------
   final <- data.table::rbindlist(all_pages, fill = TRUE)
+
+  # Post-filter to exact requested window (API resolves period to calendar days)
+  if (!is.null(from) && !is.null(to)) {
+    from_posix <- as.POSIXct(sub("Z$", "", from), format = "%Y-%m-%dT%H:%M:%S", tz = "UTC")
+    to_posix   <- as.POSIXct(sub("Z$", "", to),   format = "%Y-%m-%dT%H:%M:%S", tz = "UTC")
+    det_posix  <- as.POSIXct(sub("Z$", "", final$timestamp), format = "%Y-%m-%dT%H:%M:%S", tz = "UTC")
+    final      <- final[det_posix >= from_posix & det_posix <= to_posix]
+  }
+
   message("Done. Returning ", format(nrow(final), big.mark = ","), " detections.")
   final
 }
