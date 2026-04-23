@@ -61,6 +61,7 @@ get_environment_data <- function(station_id  = NULL,
           sensors {
             environmentHistory(period: $period, first: $first) {
               pageInfo { hasNextPage endCursor }
+              totalCount
               edges {
                 node {
                   timestamp
@@ -86,6 +87,7 @@ get_environment_data <- function(station_id  = NULL,
           sensors {
             environmentHistory(period: $period, first: $first, after: $after) {
               pageInfo { hasNextPage endCursor }
+              totalCount
               edges {
                 node {
                   timestamp
@@ -140,13 +142,26 @@ get_environment_data <- function(station_id  = NULL,
       return(NULL)
     }
 
+    total          <- env_hist$totalCount
+    total_to_fetch <- if (is.null(limit)) total else min(total, limit)
+    n_pages_total  <- ceiling(total_to_fetch / 250)
+
+    if (n_pages_total > 1) {
+      est_secs <- (n_pages_total - 1) * 1.5
+      message("  Total readings: ", format(total, big.mark = ","),
+              " — Estimated download time: ~", format_seconds(est_secs),
+              " (", n_pages_total, " pages of 250)")
+    }
+
     all_pages    <- list(flatten_env(edges, sid))
     has_next     <- env_hist$pageInfo$hasNextPage
     after_cursor <- env_hist$pageInfo$endCursor
 
-    message("Fetched page 1 - ", nrow(edges), " readings")
+    message("  Fetched page 1/", n_pages_total, " — ",
+            format(nrow(edges), big.mark = ","), " readings")
 
-    page <- 1
+    page       <- 1
+    page_times <- numeric(0)
 
     while (isTRUE(has_next) && (is.null(limit) || sum(sapply(all_pages, nrow)) < limit)) {
 
@@ -159,13 +174,18 @@ get_environment_data <- function(station_id  = NULL,
       )
 
       query_exec <- ghql::Query$new()$query('url_link', following_query)
-      result     <- fetch_page_with_retry(query_exec, page_variables, max_retries = max_retries)
+
+      t0     <- proc.time()[["elapsed"]]
+      result <- fetch_page_with_retry(query_exec, page_variables, max_retries = max_retries)
+      t1     <- proc.time()[["elapsed"]]
+
+      page_times <- c(page_times, t1 - t0)
 
       env_hist <- result$data$station$sensors$environmentHistory
       edges    <- env_hist$edges
 
       if (is.null(edges) || length(edges) == 0) {
-        message("No data on page ", page, " - stopping.")
+        message("  No data on page ", page, " - stopping.")
         break
       }
 
@@ -173,7 +193,22 @@ get_environment_data <- function(station_id  = NULL,
       has_next          <- env_hist$pageInfo$hasNextPage
       after_cursor      <- env_hist$pageInfo$endCursor
 
-      message("Fetched page ", page, " - ", nrow(edges), " readings")
+      fetched_so_far  <- sum(sapply(all_pages, nrow))
+      pct_done        <- round(fetched_so_far / total_to_fetch * 100)
+      pages_remaining <- n_pages_total - page
+      avg_page_time   <- mean(page_times)
+      eta_secs        <- pages_remaining * avg_page_time
+
+      eta_str <- if (pages_remaining > 0) {
+        paste0(" — ~", format_seconds(eta_secs), " remaining")
+      } else {
+        ""
+      }
+
+      message("  Fetched page ", page, "/", n_pages_total,
+              " (", format(fetched_so_far, big.mark = ","),
+              " / ", format(total_to_fetch, big.mark = ","),
+              ", ", pct_done, "%)", eta_str)
     }
 
     data.table::rbindlist(all_pages, fill = TRUE)
@@ -187,7 +222,8 @@ get_environment_data <- function(station_id  = NULL,
   if (length(station_id) == 1) {
     result <- .fetch_env(station_id)
     if (is.null(result)) return(data.table::data.table())
-    message("Done. Returning ", nrow(result), " environmental readings.")
+    message("Done. Returning ", format(nrow(result), big.mark = ","),
+            " environmental readings.")
     return(result)
   }
 
@@ -205,8 +241,8 @@ get_environment_data <- function(station_id  = NULL,
   }
 
   final <- data.table::rbindlist(results, fill = TRUE)
-  message("Done. Returning ", nrow(final), " environmental readings across ",
-          length(station_id), " stations.")
+  message("Done. Returning ", format(nrow(final), big.mark = ","),
+          " environmental readings across ", length(station_id), " stations.")
   final
 }
 
@@ -273,6 +309,7 @@ get_light_data <- function(station_id  = NULL,
           sensors {
             lightHistory(period: $period, first: $first) {
               pageInfo { hasNextPage endCursor }
+              totalCount
               edges {
                 node {
                   timestamp
@@ -301,6 +338,7 @@ get_light_data <- function(station_id  = NULL,
           sensors {
             lightHistory(period: $period, first: $first, after: $after) {
               pageInfo { hasNextPage endCursor }
+              totalCount
               edges {
                 node {
                   timestamp
@@ -361,13 +399,26 @@ get_light_data <- function(station_id  = NULL,
       return(NULL)
     }
 
+    total          <- light_hist$totalCount
+    total_to_fetch <- if (is.null(limit)) total else min(total, limit)
+    n_pages_total  <- ceiling(total_to_fetch / 250)
+
+    if (n_pages_total > 1) {
+      est_secs <- (n_pages_total - 1) * 1.5
+      message("  Total readings: ", format(total, big.mark = ","),
+              " — Estimated download time: ~", format_seconds(est_secs),
+              " (", n_pages_total, " pages of 250)")
+    }
+
     all_pages    <- list(flatten_light(edges, sid))
     has_next     <- light_hist$pageInfo$hasNextPage
     after_cursor <- light_hist$pageInfo$endCursor
 
-    message("Fetched page 1 - ", nrow(edges), " readings")
+    message("  Fetched page 1/", n_pages_total, " — ",
+            format(nrow(edges), big.mark = ","), " readings")
 
-    page <- 1
+    page       <- 1
+    page_times <- numeric(0)
 
     while (isTRUE(has_next) && (is.null(limit) || sum(sapply(all_pages, nrow)) < limit)) {
 
@@ -380,13 +431,18 @@ get_light_data <- function(station_id  = NULL,
       )
 
       query_exec <- ghql::Query$new()$query('url_link', following_query)
-      result     <- fetch_page_with_retry(query_exec, page_variables, max_retries = max_retries)
+
+      t0     <- proc.time()[["elapsed"]]
+      result <- fetch_page_with_retry(query_exec, page_variables, max_retries = max_retries)
+      t1     <- proc.time()[["elapsed"]]
+
+      page_times <- c(page_times, t1 - t0)
 
       light_hist <- result$data$station$sensors$lightHistory
       edges      <- light_hist$edges
 
       if (is.null(edges) || length(edges) == 0) {
-        message("No data on page ", page, " - stopping.")
+        message("  No data on page ", page, " - stopping.")
         break
       }
 
@@ -394,7 +450,22 @@ get_light_data <- function(station_id  = NULL,
       has_next          <- light_hist$pageInfo$hasNextPage
       after_cursor      <- light_hist$pageInfo$endCursor
 
-      message("Fetched page ", page, " - ", nrow(edges), " readings")
+      fetched_so_far  <- sum(sapply(all_pages, nrow))
+      pct_done        <- round(fetched_so_far / total_to_fetch * 100)
+      pages_remaining <- n_pages_total - page
+      avg_page_time   <- mean(page_times)
+      eta_secs        <- pages_remaining * avg_page_time
+
+      eta_str <- if (pages_remaining > 0) {
+        paste0(" — ~", format_seconds(eta_secs), " remaining")
+      } else {
+        ""
+      }
+
+      message("  Fetched page ", page, "/", n_pages_total,
+              " (", format(fetched_so_far, big.mark = ","),
+              " / ", format(total_to_fetch, big.mark = ","),
+              ", ", pct_done, "%)", eta_str)
     }
 
     data.table::rbindlist(all_pages, fill = TRUE)
@@ -408,7 +479,7 @@ get_light_data <- function(station_id  = NULL,
   if (length(station_id) == 1) {
     result <- .fetch_light(station_id)
     if (is.null(result)) return(data.table::data.table())
-    message("Done. Returning ", nrow(result), " light readings.")
+    message("Done. Returning ", format(nrow(result), big.mark = ","), " light readings.")
     return(result)
   }
 
@@ -426,7 +497,7 @@ get_light_data <- function(station_id  = NULL,
   }
 
   final <- data.table::rbindlist(results, fill = TRUE)
-  message("Done. Returning ", nrow(final), " light readings across ",
-          length(station_id), " stations.")
+  message("Done. Returning ", format(nrow(final), big.mark = ","),
+          " light readings across ", length(station_id), " stations.")
   final
 }
