@@ -100,8 +100,7 @@ get_top_species <- function(limit        = 10,
     jsonlite::fromJSON(flatten = FALSE)
 
   if (!is.null(result$errors)) {
-    message("API returned errors:")
-    print(result$errors)
+    message("API returned errors: ", paste(result$errors$message, collapse = "; "))
     return(data.table::data.table())
   }
 

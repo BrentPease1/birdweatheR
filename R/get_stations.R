@@ -148,8 +148,7 @@ get_stations <- function(query = NULL,
     jsonlite::fromJSON(flatten = FALSE)
 
   if (!is.null(result$errors)) {
-    message("API returned errors:")
-    print(result$errors)
+    message("API returned errors: ", paste(result$errors$message, collapse = "; "))
     return(data.table::data.table())
   }
 
@@ -189,8 +188,8 @@ get_stations <- function(query = NULL,
       jsonlite::fromJSON(flatten = FALSE)
 
     if (!is.null(result$errors)) {
-      message("API error on page ", page, " - stopping.")
-      print(result$errors)
+      message("API error on page ", page, ": ",
+              paste(result$errors$message, collapse = "; "), " — stopping.")
       break
     }
 

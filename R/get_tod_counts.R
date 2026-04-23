@@ -173,8 +173,7 @@ get_tod_counts <- function(species_id      = NULL,
       jsonlite::fromJSON(flatten = FALSE)
 
     if (!is.null(result$errors)) {
-      message("API returned errors:")
-      print(result$errors)
+      message("API returned errors: ", paste(result$errors$message, collapse = "; "))
       return(NULL)
     }
 

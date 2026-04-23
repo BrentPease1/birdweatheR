@@ -103,8 +103,7 @@ get_daily_detection_counts <- function(from        = NULL,
     jsonlite::fromJSON(flatten = FALSE)
 
   if (!is.null(result$errors)) {
-    message("API returned errors:")
-    print(result$errors)
+    message("API returned errors: ", paste(result$errors$message, collapse = "; "))
     return(data.table::data.table())
   }
 
