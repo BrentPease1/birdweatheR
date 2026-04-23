@@ -17,7 +17,7 @@
 #' }
 connect_birdweather <- function() {
   .birdweather_env$connection <- ghql::GraphqlClient$new(
-    url = 'https://app.birdweather.com/graphql'
+    url = "https://app.birdweather.com/graphql"
   )
   message("Connected to BirdWeather API.")
   invisible(.birdweather_env$connection)

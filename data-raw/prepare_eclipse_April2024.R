@@ -12,7 +12,7 @@ total_eclipse <- get_detections(
   ne   = ne,
   sw   = sw,
   confidence_gte = 0.6,
-  station_types = 'puc'
+  station_types = "puc"
 )
 
 usethis::use_data(total_eclipse, overwrite = TRUE)
@@ -35,4 +35,3 @@ eclipse_light_data <- data.table::rbindlist(light_list, fill = TRUE)
 
 
 usethis::use_data(eclipse_light_data, overwrite = TRUE)
-

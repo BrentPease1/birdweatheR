@@ -46,7 +46,8 @@ find_species <- function(query, limit = 20) {
   )
 
   query_exec <- ghql::Query$new()$query('url_link', search_query)
-  result <- .birdweather_env$connection$exec(query_exec$url_link, variables = variables) |>
+  result <- .birdweather_env$connection$exec(query_exec$url_link,
+                                             variables = variables) |>
     jsonlite::fromJSON(flatten = FALSE)
 
   if (!is.null(result$errors)) {
