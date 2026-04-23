@@ -1,6 +1,6 @@
 # Getting Started with birdweatheR
 
-### Introduction
+## Introduction
 
 [BirdWeather](https://birdweather.com) is a global network of acoustic
 monitoring stations maintained and operated by volunteers that
@@ -24,7 +24,7 @@ readings from BirdWeather PUC units — which record temperature,
 barometric pressure, humidity, air quality, and spectral light levels
 alongside acoustic detections.
 
-#### Installation
+### Installation
 
 ``` r
 # Install from GitHub
@@ -32,7 +32,7 @@ alongside acoustic detections.
 devtools::install_github("BrentPease1/birdweatheR")
 ```
 
-#### Connecting to the API
+### Connecting to the API
 
 All functions require an active API connection. No API KEY required.
 Establish a connection at the start of each session:
@@ -48,12 +48,12 @@ explicitly after the initial call.
 
 ------------------------------------------------------------------------
 
-### Exploring the Platform
+## Exploring the Platform
 
 Before pulling raw detections, a few summary functions give a quick
 overview of the BirdWeather database.
 
-#### Platform-wide summary
+### Platform-wide summary
 
 [`get_counts()`](https://brentpease1.github.io/birdweatheR/reference/get_counts.md)
 returns a single-row summary of detections, species, and stations for a
@@ -72,7 +72,7 @@ get_counts(
 Over 11 million detections from 1,664 species across 3,890 stations in a
 single 24-hour period illustrates the scale of the BirdWeather network.
 
-#### Top species
+### Top species
 
 [`get_top_species()`](https://brentpease1.github.io/birdweatheR/reference/get_top_species.md)
 returns the most frequently detected species for a given period, with a
@@ -97,7 +97,7 @@ get_top_species(
     #> 3          70        0         0
     #> 4           3        0         0
 
-#### Discovering stations
+### Discovering stations
 
 [`get_stations()`](https://brentpease1.github.io/birdweatheR/reference/get_stations.md)
 retrieves the full station network with coordinates, country, and
@@ -124,9 +124,9 @@ queries.
 
 ------------------------------------------------------------------------
 
-### Species Detection Patterns
+## Species Detection Patterns
 
-#### Finding species
+### Finding species
 
 [`find_species()`](https://brentpease1.github.io/birdweatheR/reference/find_species.md)
 searches the BirdWeather species database by common or scientific name.
@@ -144,7 +144,7 @@ find_species("thrush")
 find_species("whip*")
 ```
 
-#### Time-of-day activity
+### Time-of-day activity
 
 [`get_tod_counts()`](https://brentpease1.github.io/birdweatheR/reference/get_tod_counts.md)
 returns detection counts binned by 30-minute intervals across a time
@@ -212,7 +212,7 @@ One shortcoming of the TOD function, however, is when a species is
 poorly detected. In this case, a manual approach would be required
 (e.g., using `get_detections`)
 
-#### Daily detection trends
+### Daily detection trends
 
 [`get_daily_detection_counts()`](https://brentpease1.github.io/birdweatheR/reference/get_daily_detection_counts.md)
 returns detection totals aggregated by day, optionally broken down by
@@ -240,13 +240,13 @@ This function can be a powerful summary function when combined with
 `station_ids`, `species_ids`, or breaking down `by_species`, which are
 all built-in arguments to the function.
 
-#### Raw Detections
+### Raw Detections
 
 For research, the most useful function will likely be `get_detections`.
 This function allows for raw data downloads from the BirdWeather
 database, where then the scientific questions are seemingly endless.
 
-##### get_detections
+#### get_detections
 
 `get_detections` is a function that retrieves bird detections from the
 BirdWeather API with optional filters. Importantly, since we are dealing
@@ -298,7 +298,7 @@ detections <- get_detections(
 )
 ```
 
-###### returned columns
+##### returned columns
 
 `get_detections` will return the following columns:
 
@@ -322,91 +322,7 @@ detections <- get_detections(
 
 ------------------------------------------------------------------------
 
-## Applications of BirdWeather
-
-### Migration Phenology
-
-One of the most powerful applications of BirdWeather data is tracking
-the phenology of migratory species at continental scale. Because
-BirdWeather stations operate continuously, the dataset captures the
-high-temporal resolution information, such as northward progression of
-spring migrants.
-
-Here we use Wood Thrush (*Hylocichla mustelina*), a long-distance
-Neotropical migrant that winters in Central America and breeds across
-eastern North America, to illustrate how
-[`get_detections()`](https://brentpease1.github.io/birdweatheR/reference/get_detections.md)
-can reveal migratory timing across latitudes.
-
-The `woth` dataset bundled with this package contains 569,000 Wood
-Thrush detections from North American BirdWeather stations during spring
-migration (March–May 2025), filtered to detections with confidence ≥
-0.6.
-
-``` r
-library(birdweatheR)
-library(data.table)
-library(ggplot2)
-
-data(woth)
-```
-
-``` r
-# To reproduce this dataset from the API:
-# connect_birdweather()
-# woth_id <- find_species("Wood Thrush")$species_id
-# woth <- get_detections(
-#   from           = "2025-03-01T00:00:00.000Z",
-#   to             = "2025-05-31T00:00:00.000Z",
-#   species_ids    = woth_id,
-#   confidence_gte = 0.6,
-#   continents     = "North America"
-# )
-```
-
-We calculate the median latitude of all detections for each day. As
-birds depart their Central American wintering grounds and move
-northward, the median latitude of detections shifts from roughly 15°N in
-early March to over 40°N by mid-May:
-
-``` r
-woth[, date := as.Date(timestamp)]
-
-median_lat <- woth[, .(median_lat = median(station_lat, na.rm = TRUE)),
-                   by = date]
-
-ggplot(median_lat, aes(x = date, y = median_lat)) +
-  geom_smooth(method = "gam", color = "#1C2223", fill = "#8D4C00") +
-  annotate("text",
-           x     = as.Date("2025-03-10"),
-           y     = 20,
-           label = "Wintering grounds\n(Central America)",
-           size  = 3, color = "gray40") +
-  annotate("text",
-           x     = as.Date("2025-05-20"),
-           y     = 45,
-           label = "Breeding grounds\n(Eastern N. America)",
-           size  = 3, color = "gray40") +
-  labs(
-    title    = "Wood Thrush Spring Migration",
-    subtitle = "Northward shift in median detection latitude, March-May 2025",
-    x        = NULL,
-    y        = "Median Latitude (°N)",
-    caption  = "Data source: BirdWeather via birdweatheR"
-  ) +
-  theme_minimal()
-```
-
-![](getting-started_files/figure-html/woth_migration-1.png)
-
-The smooth northward shift from ~15°N to ~41°N over approximately ten
-weeks closely tracks published Wood Thrush migration chronology,
-demonstrating that BirdWeather acoustic detections can recover
-continent-scale movement patterns from passively collected data alone.
-
-------------------------------------------------------------------------
-
-### Weather Events and Sensor Data
+## Sensor Data
 
 [BirdWeather PUC (Portable Universe Codec)
 units](https://www.birdweather.com/shop-birdweather-puc), BirdWeather’s
@@ -414,300 +330,55 @@ AI-powered bioacoustics platform, in addition to being equipped with
 dual microphones, WiFi, and GPS, are also packaged with on-board
 environmental sensors that record temperature, humidity, barometric
 pressure, air quality index, and sound pressure level at approximately
-42-second intervals. This onboard sensor data enables researchers to
+42-second intervals. PUCs also record light levels at the sensor,
+including broadband light levels, near-infrared light, and the ability
+to isolate bands f1-f8. This onboard sensor data enables researchers to
 directly link bird vocal activity to local environmental conditions — a
 capability not available in any other large-scale acoustic monitoring
 dataset.
 
-#### The May 15–16, 2025 Tornado Outbreak
+### Environmental sensor data
 
-On May 15–16, 2025, a major tornado outbreak produced 61 tornadoes
-across the Midwest and Ohio Valley in the United States, including a
-destructive EF3 tornado that struck the Greater St. Louis metropolitan
-area at 2:39 pm CDT on May 16. The outbreak caused 26 deaths and
-approximately \$5.9 billion in damages.
-
-The `stl_storm_May2025` dataset contains detections from eight PUC
-stations in the St. Louis metro area during May 12–18, 2025. The
-`stl_env_May2025` dataset contains concurrent environmental sensor
-readings from those same stations.
-
-``` r
-data(stl_storm_May2025)
-data(stl_env_May2025)
-```
-
-``` r
-# To reproduce from the API:
-# connect_birdweather()
-# stl_storm_May2025 <- get_detections(
-#   from          = "2025-05-12T00:00:00.000Z",
-#   to            = "2025-05-18T00:00:00.000Z",
-#   ne            = list(lat = 38.95, lon = -89.85),
-#   sw            = list(lat = 38.35, lon = -90.75),
-#   station_types = "puc"
-# )
-#
-# station_ids <- unique(stl_storm_May2025$station_id)
-# env_list <- lapply(station_ids, function(sid) {
-#   get_environment_data(
-#     station_id = sid,
-#     from       = "2025-05-14T00:00:00.000Z",
-#     to         = "2025-05-17T00:00:00.000Z"
-#   )
-# })
-# stl_env_May2025 <- data.table::rbindlist(env_list, fill = TRUE)
-```
-
-We focus on May 16 itself, plotting bird detections and mean temperature
-across all eight stations in 10-minute intervals. The sharp temperature
-drop associated with the tornado’s passage is clearly visible,
-coinciding with a spike in acoustic detections around the time of EF3
-touchdown:
-
-``` r
-# Parse detection timestamps
-stl_storm_May2025[, datetime := as.POSIXct(timestamp,
-                    format = "%Y-%m-%dT%H:%M:%S", tz = "America/Chicago")]
-
-# 10-minute detection counts
-ten_min_dets <- stl_storm_May2025[, .(det_count = .N),
-                  by = .(interval = as.POSIXct(format(
-                    datetime - as.numeric(datetime) %% 600,
-                    "%Y-%m-%d %H:%M:%S"), tz = "America/Chicago"))]
-
-stl_env_May2025[, datetime := as.POSIXct(timestamp,
-                  format = "%Y-%m-%dT%H:%M:%S", tz = "America/Chicago")]
-
-# 10-minute temperature averages
-ten_min_env <- stl_env_May2025[, .(mean_temp = mean(temperature, na.rm = TRUE)),
-                 by = .(interval = as.POSIXct(format(
-                   datetime - as.numeric(datetime) %% 600,
-                   "%Y-%m-%d %H:%M:%S"), tz = "America/Chicago"))]
-
-# Merge and filter to May 16
-ten_min_combined <- merge(ten_min_dets, ten_min_env, by = "interval", all = TRUE)
-may16_start      <- as.POSIXct("2025-05-16 00:00:00", tz = "America/Chicago")
-may16_end        <- as.POSIXct("2025-05-16 23:59:59", tz = "America/Chicago")
-ten_min_may16    <- ten_min_combined[interval >= may16_start & interval <= may16_end]
-
-# Intervals with no detections should be 0, not NA
-ten_min_may16[is.na(det_count), det_count := 0]
-
-library(cowplot)
-p1 <- ggplot(ten_min_may16, aes(x = interval, y = det_count)) +
-  geom_line(color = "forestgreen") +
-  geom_vline(xintercept = as.POSIXct("2025-05-16 14:39:00", tz = "America/Chicago"),
-             color = "red", linetype = "dashed") +
-  labs(title = "Bird Detections — St. Louis Metro (May 16, 2025)",
-       x = NULL, y = "Detections per 10 min") +
-  theme_minimal()
-
-temp_max <- max(ten_min_may16$mean_temp, na.rm = TRUE)
-if (!is.finite(temp_max)) temp_max <- 25
-
-p2 <- ggplot(ten_min_may16, aes(x = interval, y = mean_temp)) +
-  geom_line(color = "darkorange") +
-  geom_vline(xintercept = as.POSIXct("2025-05-16 14:39:00", tz = "America/Chicago"),
-             color = "red", linetype = "dashed") +
-  annotate("text", x = as.POSIXct("2025-05-16 14:39:00", tz = "America/Chicago"),
-           y     = 30,
-           label = "EF3 touchdown\n2:39pm CDT",
-           color = "red", hjust = -0.1, size = 3) +
-  labs(x = NULL, y = "Temperature (°C)",
-       caption = "Data source: BirdWeather via birdweatheR") +
-  theme_minimal()
-
-plot_grid(p1, p2, ncol = 1, align = "v")
-```
-
-![](getting-started_files/figure-html/stl_may16-1.png)
-
-The
 [`get_environment_data()`](https://brentpease1.github.io/birdweatheR/reference/get_environment_data.md)
-function retrieves sensor readings for any PUC station and time window,
-enabling researchers to pair environmental context with acoustic
-detections at fine temporal resolution.
+retrieves temperature, humidity, barometric pressure, air quality, and
+sound pressure level readings for a PUC station over a specified time
+window:
+
+``` r
+env_data <- get_environment_data(
+  station_id = "1733",
+  from       = "2025-05-01T00:00:00.000Z",
+  to         = "2025-05-02T00:00:00.000Z"
+)
+```
+
+### Light sensor data
+
+[`get_light_data()`](https://brentpease1.github.io/birdweatheR/reference/get_light_data.md)
+retrieves spectral light sensor readings from PUC stations, including
+broadband clear light, near-infrared, and individual spectral bands
+(f1–f8):
+
+``` r
+light_data <- get_light_data(
+  station_id = "1733",
+  from       = "2025-05-01T00:00:00.000Z",
+  to         = "2025-05-02T00:00:00.000Z"
+)
+```
 
 ------------------------------------------------------------------------
 
-### Astronomical Events
+## Further Reading
 
-In addition to environmental sensors, PUCs record light-levels at the
-sensor, including broadband light levels, near-infrared light, and the
-ability to isolate bands f1-f8. The combination of acoustic detections
-and on-board light sensors makes BirdWeather data uniquely suited to
-studying how birds respond to rapid changes in light levels — including
-those caused by solar eclipses.
+For worked examples of these functions applied to real research
+questions — including migration phenology, activity timing with human
+footprint, and behavioral responses to the 2024 total solar eclipse —
+see the [Example Applications
+vignette](https://brentpease1.github.io/birdweatheR/articles/example-applications.md).
 
-#### The April 8, 2024 Total Solar Eclipse
-
-On April 8, 2024, a total solar eclipse crossed North America along a
-path running from Texas northeast through the Ohio Valley. At stations
-within the path of totality, daylight was completely extinguished for up
-to four minutes around 2:00 pm local time.
-
-The `total_eclipse` dataset contains detections from PUC stations within
-an eclipse path bounding box during April 8, 2024. The
-`eclipse_light_data` dataset contains concurrent light sensor readings
-from those same stations.
-
-``` r
-data(total_eclipse)
-data(eclipse_light_data)
-```
-
-``` r
-# To reproduce from the API:
-# connect_birdweather()
-# total_eclipse <- get_detections(
-#   from           = "2024-04-08T00:00:00.000Z",
-#   to             = "2024-04-09T00:00:00.000Z",
-#   ne             = list(lat = 42.639347, lon = -79.672852),
-#   sw             = list(lat = 34.331340, lon = -94.570313),
-#   confidence_gte = 0.6,
-#   station_types  = "puc"
-# )
-#
-# station_ids <- unique(total_eclipse$station_id)
-# light_list <- lapply(station_ids, function(sid) {
-#   get_light_data(
-#     station_id = sid,
-#     from       = "2024-04-08T00:00:00.000Z",
-#     to         = "2024-04-09T00:00:00.000Z"
-#   )
-# })
-# eclipse_light_data <- data.table::rbindlist(light_list, fill = TRUE)
-```
-
-Rather than relying on an external shapefile, we use the PUC light
-sensor data itself to identify stations that experienced totality —
-defined here as stations where broadband light levels dropped below 10%
-of their morning baseline during the eclipse window:
-
-``` r
-eclipse_light_data[, datetime := as.POSIXct(timestamp,
-                    format = "%Y-%m-%dT%H:%M:%S", tz = "America/Chicago")]
-total_eclipse[, datetime := as.POSIXct(timestamp,
-               format = "%Y-%m-%dT%H:%M:%S", tz = "America/Chicago")]
-
-# Morning baseline (10:00-11:00 am)
-station_baselines <- eclipse_light_data[
-  datetime >= as.POSIXct("2024-04-08 10:00:00", tz = "America/Chicago") &
-  datetime <= as.POSIXct("2024-04-08 11:00:00", tz = "America/Chicago"),
-  .(baseline = mean(clear, na.rm = TRUE)), by = station_id]
-
-# Minimum light during totality window (1:45-2:15 pm)
-station_min <- eclipse_light_data[
-  datetime >= as.POSIXct("2024-04-08 13:45:00", tz = "America/Chicago") &
-  datetime <= as.POSIXct("2024-04-08 14:15:00", tz = "America/Chicago"),
-  .(min_clear = min(clear, na.rm = TRUE)), by = station_id]
-
-totality_ids <- merge(station_baselines, station_min, by = "station_id")[
-  min_clear / baseline < 0.10, station_id]
-
-message(length(totality_ids), " stations identified within path of totality")
-```
-
-Of the stations in the bounding box, 25 experienced a light drop of
-\>90%, confirming they were likely within the path of totality.
-
-We then compare broadband light levels with Common Grackle (*Quiscalus
-quiscula*) vocalization rates across these stations. Common Grackle is a
-highly vocal diurnal species with peak activity during midday — making
-it a sensitive indicator of unusual light changes:
-
-``` r
-# 5-minute bin helper
-bin5 <- function(dt) {
-  as.POSIXct(
-    paste0(format(dt, "%Y-%m-%d %H:"),
-           sprintf("%02d", (as.integer(format(dt, "%M")) %/% 5) * 5),
-           ":00"),
-    tz = "America/Chicago"
-  )
-}
-
-# Filter to daytime window and totality stations
-eclipse_day_light <- eclipse_light_data[
-  station_id %in% totality_ids &
-  datetime >= as.POSIXct("2024-04-08 10:00:00", tz = "America/Chicago") &
-  datetime <= as.POSIXct("2024-04-08 17:00:00", tz = "America/Chicago")
-]
-
-eclipse_day_dets <- total_eclipse[
-  station_id %in% totality_ids &
-  datetime >= as.POSIXct("2024-04-08 10:00:00", tz = "America/Chicago") &
-  datetime <= as.POSIXct("2024-04-08 17:00:00", tz = "America/Chicago") &
-  common_name == "Common Grackle"
-]
-
-# Bin to 5 minutes
-light_bins <- eclipse_day_light[,
-  .(mean_clear = mean(clear, na.rm = TRUE)),
-  by = .(bin = bin5(datetime))]
-
-det_bins <- eclipse_day_dets[,
-  .(det_count = .N),
-  by = .(bin = bin5(datetime))]
-```
-
-``` r
-library(cowplot)
-
-p1 <- ggplot(det_bins, aes(x = bin, y = det_count)) +
-  geom_line(color = "purple", alpha = 0.2) +
-  geom_smooth(color = "purple", se = FALSE, span = 0.15) +
-  geom_vline(
-    xintercept = as.POSIXct("2024-04-08 13:59:00", tz = "America/Chicago"),
-    color = "gray20", linetype = "dashed"
-  ) +
-  annotate("text",
-           x     = as.POSIXct("2024-04-08 13:59:00", tz = "America/Chicago"),
-           y     = max(det_bins$det_count, na.rm = TRUE) * 0.95,
-           label = "Totality", color = "gray20", hjust = -0.1, size = 3) +
-  labs(
-    title    = "Common Grackle Vocalizations During the April 8, 2024 Solar Eclipse",
-    subtitle = "5-minute detection counts, stations within path of totality",
-    x        = NULL,
-    y        = "Detections per 5 min"
-  ) +
-  theme_minimal()
-
-p2 <- ggplot(light_bins, aes(x = bin, y = mean_clear)) +
-  geom_line(color = "goldenrod") +
-  geom_vline(
-    xintercept = as.POSIXct("2024-04-08 13:59:00", tz = "America/Chicago"),
-    color = "gray20", linetype = "dashed"
-  ) +
-  labs(
-    subtitle = "Mean broadband clear light across stations in path of totality",
-    x        = NULL,
-    y        = "Clear Light (counts)",
-    caption  = "Data source: BirdWeather via birdweatheR"
-  ) +
-  theme_minimal()
-
-plot_grid(p1, p2, ncol = 1, align = "v")
-```
-
-![](getting-started_files/figure-html/eclipse_plot-1.png)
-
-The light sensor data clearly captures the eclipse — broadband light
-levels collapse to near zero at totality before recovering to normal
-afternoon levels. The concurrent reduction in Common Grackle
-vocalizations illustrates how BirdWeather’s integrated acoustic and
-environmental sensing can be used to study behavioral responses to rapid
-environmental perturbations.
-
-------------------------------------------------------------------------
-
-### Further Reading
-
-The analyses demonstrated in this vignette represent a small subset of
-what is possible with the BirdWeather dataset. For an example of
-large-scale ecological synthesis using BirdWeather detections, see
-[Pease & Gilbert
+For an example of large-scale ecological synthesis using BirdWeather
+detections, see [Pease & Gilbert
 (2025)](https://www.science.org/doi/10.1126/science.adv9472), who used
 over 60 million BirdWeather detections across 583 diurnal species to
 demonstrate that light pollution prolongs avian vocal activity by up to
@@ -717,7 +388,7 @@ Additionally, a full analysis of the 2023 Annular and 2024 Total
 Eclipses using data from the [Eclipse
 Soundscapes](https://eclipsesoundscapes.org/) project and BirdWeather
 can be found in [Gilbert et al.,
-2026](https://onlinelibrary.wiley.com/doi/full/10.1002/ece3.73090)
+2026](https://onlinelibrary.wiley.com/doi/full/10.1002/ece3.73090).
 
 For questions, bug reports, or feature requests, please visit the
 package repository at
