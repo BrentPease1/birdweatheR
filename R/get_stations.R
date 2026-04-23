@@ -52,7 +52,7 @@ get_stations <- function(query = NULL,
     stop("No API connection found. Please run connect_birdweather() first.")
   }
 
-  # Normalize date inputs — accepts strings, Date, POSIXct, lubridate, etc.
+  # Normalize date inputs - accepts strings, Date, POSIXct, lubridate, etc.
   from <- normalize_datetime(from, "from")
   to   <- normalize_datetime(to,   "to")
 
@@ -190,7 +190,7 @@ get_stations <- function(query = NULL,
     if (!is.null(result$errors)) {
       message("API error on page ", page, ": ",
               paste(result$errors$message, collapse = "; "),
-              " — returning ", sum(sapply(all_pages, nrow)), " detections fetched so far.")
+              " - returning ", sum(sapply(all_pages, nrow)), " detections fetched so far.")
       break
     }
 

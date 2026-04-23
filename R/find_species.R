@@ -4,7 +4,7 @@
 #' species IDs to pass into get_detections(), or for exploring what
 #' species exist in the BirdWeather database.
 #'
-#' @param query A search string — common name, scientific name, or partial
+#' @param query A search string - common name, scientific name, or partial
 #'   match (e.g. "chickadee", "Poecile", "Black-capped")
 #' @param limit Maximum number of results to return (default: 20)
 #'

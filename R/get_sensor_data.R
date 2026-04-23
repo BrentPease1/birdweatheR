@@ -151,7 +151,7 @@ get_environment_data <- function(station_id  = NULL,
     if (n_pages_total > 1) {
       est_secs <- (n_pages_total - 1) * 1.5
       message("  Total readings: ", format(total, big.mark = ","),
-              " — Estimated download time: ~", format_seconds(est_secs),
+              " - Estimated download time: ~", format_seconds(est_secs),
               " (", n_pages_total, " pages of 250)")
     }
 
@@ -159,7 +159,7 @@ get_environment_data <- function(station_id  = NULL,
     has_next     <- env_hist$pageInfo$hasNextPage
     after_cursor <- env_hist$pageInfo$endCursor
 
-    message("  Fetched page 1/", n_pages_total, " — ",
+    message("  Fetched page 1/", n_pages_total, " - ",
             format(nrow(edges), big.mark = ","), " readings")
 
     page       <- 1
@@ -202,7 +202,7 @@ get_environment_data <- function(station_id  = NULL,
       eta_secs        <- pages_remaining * avg_page_time
 
       eta_str <- if (pages_remaining > 0) {
-        paste0(" — ~", format_seconds(eta_secs), " remaining")
+        paste0(" - ~", format_seconds(eta_secs), " remaining")
       } else {
         ""
       }
@@ -417,7 +417,7 @@ get_light_data <- function(station_id  = NULL,
     if (n_pages_total > 1) {
       est_secs <- (n_pages_total - 1) * 1.5
       message("  Total readings: ", format(total, big.mark = ","),
-              " — Estimated download time: ~", format_seconds(est_secs),
+              " - Estimated download time: ~", format_seconds(est_secs),
               " (", n_pages_total, " pages of 250)")
     }
 
@@ -425,7 +425,7 @@ get_light_data <- function(station_id  = NULL,
     has_next     <- light_hist$pageInfo$hasNextPage
     after_cursor <- light_hist$pageInfo$endCursor
 
-    message("  Fetched page 1/", n_pages_total, " — ",
+    message("  Fetched page 1/", n_pages_total, " - ",
             format(nrow(edges), big.mark = ","), " readings")
 
     page       <- 1
@@ -468,7 +468,7 @@ get_light_data <- function(station_id  = NULL,
       eta_secs        <- pages_remaining * avg_page_time
 
       eta_str <- if (pages_remaining > 0) {
-        paste0(" — ~", format_seconds(eta_secs), " remaining")
+        paste0(" - ~", format_seconds(eta_secs), " remaining")
       } else {
         ""
       }

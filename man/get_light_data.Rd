@@ -15,9 +15,11 @@ get_light_data(
 \arguments{
 \item{station_id}{A single station ID or character vector of station IDs (required)}
 
-\item{from}{Start datetime in ISO8601 format (e.g. "2025-01-01T00:00:00.000Z")}
+\item{from}{Start datetime in ISO8601 format (e.g. "2025-01-01T00:00:00.000Z").
+BirdWeather API resolves to calendar days; sub-day filtering is done through package.}
 
-\item{to}{End datetime in ISO8601 format (e.g. "2025-01-02T00:00:00.000Z")}
+\item{to}{End datetime in ISO8601 format (e.g. "2025-01-02T00:00:00.000Z")
+#' BirdWeather API resolves to calendar days; sub-day filtering is done through package.}
 
 \item{limit}{Maximum number of readings to return per station (default: NULL,
 returns all). When multiple station IDs are provided, limit applies to each

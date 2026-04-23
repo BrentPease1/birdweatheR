@@ -95,7 +95,7 @@
 #'
 #' # Filter by bounding box (Missouri/Illinois/Kentucky region)
 #' # NOTE: from/to are UTC. A "2025-05-12 midnight" in Chicago (CDT, UTC-5)
-#' # would be "2025-05-12T05:00:00.000Z" — use tz= to avoid manual conversion.
+#' # would be "2025-05-12T05:00:00.000Z" - use tz= to avoid manual conversion.
 #' dets <- get_detections(
 #'   from  = "2025-05-12T00:00:00.000Z",
 #'   to    = "2025-05-18T00:00:00.000Z",
@@ -104,7 +104,7 @@
 #'   limit = 10000
 #' )
 #'
-#' # Supply local times directly using tz — no manual UTC conversion needed.
+#' # Supply local times directly using tz - no manual UTC conversion needed.
 #' # from/to are interpreted as America/Chicago local time and converted
 #' # to UTC before the query.
 #' dets <- get_detections(
@@ -139,7 +139,7 @@ get_detections <- function(from            = NULL,
 
   # -------------------------------------------------------
   # Normalize date inputs (accepts "YYYY-MM-DD", full ISO8601,
-  # Date, POSIXct — mirrors behaviour of other get_* functions)
+  # Date, POSIXct - mirrors behaviour of other get_* functions)
   # -------------------------------------------------------
   from <- normalize_datetime(from, "from")
   to   <- normalize_datetime(to,   "to")
@@ -362,7 +362,7 @@ get_detections <- function(from            = NULL,
     message("Tip: set limit = 1000 to retrieve a subset first.")
   }
 
-  message("Fetched page 1/", n_pages_total, " — ",
+  message("Fetched page 1/", n_pages_total, " - ",
           format(nrow(nodes), big.mark = ","), " detections")
 
   # -------------------------------------------------------
@@ -411,7 +411,7 @@ get_detections <- function(from            = NULL,
     eta_secs        <- pages_remaining * avg_page_time
 
     eta_str <- if (pages_remaining > 0) {
-      paste0(" — ~", format_seconds(eta_secs), " remaining")
+      paste0(" - ~", format_seconds(eta_secs), " remaining")
     } else {
       ""
     }
