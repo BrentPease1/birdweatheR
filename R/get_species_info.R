@@ -77,7 +77,7 @@ get_species_info <- function(ids) {
   nodes <- result$data$allSpecies$nodes
 
   if (is.null(nodes) || length(nodes) == 0) {
-    message("No species found for provided IDs.")
+    message("No species found for the provided IDs.")
     return(data.table::data.table())
   }
 

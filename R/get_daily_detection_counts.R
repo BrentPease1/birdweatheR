@@ -110,7 +110,7 @@ get_daily_detection_counts <- function(from        = NULL,
   daily <- result$data$dailyDetectionCounts
 
   if (is.null(daily) || !length(daily)) {
-    message("No data found for the specified filters.")
+    message("No detections found for the specified filters.")
     return(data.table::data.table())
   }
 

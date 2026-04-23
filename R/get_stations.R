@@ -189,7 +189,8 @@ get_stations <- function(query = NULL,
 
     if (!is.null(result$errors)) {
       message("API error on page ", page, ": ",
-              paste(result$errors$message, collapse = "; "), " — stopping.")
+              paste(result$errors$message, collapse = "; "),
+              " — returning ", sum(sapply(all_pages, nrow)), " detections fetched so far.")
       break
     }
 

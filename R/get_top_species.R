@@ -107,7 +107,7 @@ get_top_species <- function(limit        = 10,
   top <- result$data$topSpecies
 
   if (is.null(top) || nrow(top) == 0) {
-    message("No data found for the specified filters.")
+    message("No species found for the specified filters.")
     return(data.table::data.table())
   }
 

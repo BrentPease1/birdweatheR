@@ -65,13 +65,13 @@ find_species <- function(query, limit = 20) {
     return(data.table::data.table())
   }
 
-  if(length(nodes) > 20){
-    message("More than 20 species match your query. Displaying first 20
-            Use the `limit` argument to allow more returns (e.g., limit = 30")
-  }
-
   dt <- data.table::as.data.table(nodes)
   data.table::setnames(dt, c("id", "commonName", "scientificName"),
                            c("species_id", "common_name", "scientific_name"))
   dt
+
+  if (nrow(dt) >= limit) {
+    message("Results may be truncated: ", nrow(dt), " species returned. ",
+            "Use limit = ", limit * 2, " to retrieve more.")
+  }
 }
