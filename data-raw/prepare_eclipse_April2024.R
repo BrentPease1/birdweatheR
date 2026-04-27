@@ -23,15 +23,20 @@ unique_stations <- total_eclipse[, .(station_name = station_name[1],
                                      station_lon  = station_lon[1]),
                                  by = station_id]
 
-light_list <- lapply(unique_stations$station_id, function(sid) {
-  get_light_data(
-    station_id = sid,
-    from = "2024-04-08T00:00:00.000Z",
-    to   = "2024-04-09T00:00:00.000Z"
-  )
-})
-
-eclipse_light_data <- data.table::rbindlist(light_list, fill = TRUE)
+# download light data
+eclipse_light_data <-   get_light_data(
+  station_id = unique_stations$station_id,
+  from = "2024-04-08T00:00:00.000Z",
+  to   = "2024-04-09T00:00:00.000Z"
+)
 
 
 usethis::use_data(eclipse_light_data, overwrite = TRUE)
+
+# download env data
+eclipse_env_data <- get_environment_data(
+  station_id = unique_stations$station_id,
+  from       = "2024-04-08T00:00:00.000Z",
+  to         = "2024-04-09T00:00:00.000Z"
+)
+usethis::use_data(eclipse_env_data, overwrite = TRUE)

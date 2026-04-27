@@ -82,3 +82,24 @@
 #' }
 #' @source BirdWeather API via birdweatheR
 "eclipse_light_data"
+
+#' Solar Eclipse Environment Sensor Data
+#'
+#' BirdWeather PUC environmental sensor readings across stations in the path of
+#' the April 8, 2024 total solar eclipse in North America.
+#'
+#' @format A data.table with 46,096 rows and 10 columns:
+#' \describe{
+#'   \item{station_id}{Station ID}
+#'   \item{timestamp}{Reading timestamp with UTC offset (character)}
+#'   \item{temperature}{Temperature in Celsius}
+#'   \item{humidity}{Relative humidity (percent)}
+#'   \item{barometric_pressure}{Barometric pressure (hPa)}
+#'   \item{aqi}{Air quality index}
+#'   \item{eco2}{Equivalent CO2 (ppm)}
+#'   \item{voc}{Volatile organic compounds}
+#'   \item{sound_pressure_level}{Sound pressure level (dB)}
+#'   \item{datetime}{Parsed timestamp as POSIXct in local station time}
+#' }
+#' @source BirdWeather API via birdweatheR
+"eclipse_env_data"
