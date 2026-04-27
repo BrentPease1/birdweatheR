@@ -6,14 +6,14 @@
 #' into individual columns. Includes automatic retry with exponential backoff
 #' to handle transient 504/server errors mid-pagination.
 #'
-#' @param from Start datetime as a string in ISO8601 format in UTC
+#' @param from Start date as a string ("YYYY-MM-DD") or full ISO8601 UTC datetime
 #'   (e.g. "2025-01-01T00:00:00.000Z"). Defaults to 24 hours ago if NULL.
 #'   If \code{tz} is supplied, this should instead be a local datetime string
 #'   without a trailing Z (e.g. "2025-05-16T00:00:00") and it will be
 #'   converted to UTC automatically before the query. Note: the BirdWeather
 #'   API resolves the period filter to calendar days; sub-day filtering is
 #'   done by the package.
-#' @param to End datetime as a string in ISO8601 format in UTC
+#' @param to End date as a string ("YYYY-MM-DD") or full ISO8601 UTC datetime
 #'   (e.g. "2025-01-02T00:00:00.000Z"). Defaults to now if NULL.
 #'   See \code{from} for local-time usage with \code{tz}.
 #' @param tz Optional. An Olson timezone string (e.g. \code{"America/Chicago"},
@@ -22,6 +22,13 @@
 #'   before the API query. When NULL (the default), \code{from} and \code{to}
 #'   are passed to the API as-is and are assumed to already be in UTC. Use
 #'   \code{OlsonNames()} for valid timezone strings.
+#' @param time_gte Optional. Filter detections at or after this time of day,
+#'   as a string in "HH:MM" format (e.g. \code{"13:00"}). Always interpreted
+#'   as UTC regardless of the \code{tz} argument. Applied via the BirdWeather
+#'   API's \code{timeOfDayGte} argument (minutes since midnight UTC).
+#' @param time_lte Optional. Filter detections at or before this time of day,
+#'   as a string in "HH:MM" format (e.g. \code{"15:00"}). Always interpreted
+#'   as UTC regardless of the \code{tz} argument. See \code{time_gte} for details.
 #' @param station_ids Character vector of station IDs to filter on (optional)
 #' @param station_types Character vector of station types to filter on (optional).
 #'   Known types include "puc" (BirdWeather PUC units), "birdnetpi"
@@ -55,7 +62,7 @@
 #' @return A flat data.table where each row is one detection with columns:
 #'   id, timestamp, confidence, probability, score,
 #'   species_id, common_name, scientific_name, classification,
-#'   station_id, station_name, station_type, station_timezone,
+#'   station_id, station_name, station_type,
 #'   station_country, station_continent, station_state, station_location,
 #'   station_lat, station_lon
 #' @seealso \code{\link{find_species}} to look up species IDs or names,
@@ -71,42 +78,48 @@
 #'
 #' # Get detections for a date range
 #' dets <- get_detections(
-#'   from  = "2025-01-01T00:00:00.000Z",
-#'   to    = "2025-01-02T00:00:00.000Z",
+#'   from  = "2025-01-01",
+#'   to    = "2025-01-02",
 #'   limit = 1000
 #' )
 #'
 #' # Filter by species name
 #' dets <- get_detections(
-#'   from          = "2025-01-01T00:00:00.000Z",
-#'   to            = "2025-01-02T00:00:00.000Z",
+#'   from          = "2025-01-01",
+#'   to            = "2025-01-02",
 #'   species_names = "Black-capped Chickadee",
 #'   limit         = 1000
 #' )
 #'
+#' # Filter by time of day (UTC) - only detections between 13:00 and 15:00
+#' dets <- get_detections(
+#'   from     = "2025-05-01",
+#'   to       = "2025-05-31",
+#'   time_gte = "13:00",
+#'   time_lte = "15:00",
+#'   limit    = 1000
+#' )
+#'
+#' # Filter by time of day in local timezone
+#' dets <- get_detections(
+#'   from     = "2025-05-01",
+#'   to       = "2025-05-31",
+#'   tz       = "America/New_York",
+#'   time_gte = "13:00",
+#'   time_lte = "15:00",
+#'   limit    = 1000
+#' )
+#'
 #' # Filter by continent with confidence threshold
 #' dets <- get_detections(
-#'   from           = "2025-01-01T00:00:00.000Z",
-#'   to             = "2025-01-02T00:00:00.000Z",
+#'   from           = "2025-01-01",
+#'   to             = "2025-01-02",
 #'   continents     = "North America",
 #'   confidence_gte = 0.9,
 #'   limit          = 1000
 #' )
 #'
-#' # Filter by bounding box (Missouri/Illinois/Kentucky region)
-#' # NOTE: from/to are UTC. A "2025-05-12 midnight" in Chicago (CDT, UTC-5)
-#' # would be "2025-05-12T05:00:00.000Z" - use tz= to avoid manual conversion.
-#' dets <- get_detections(
-#'   from  = "2025-05-12T00:00:00.000Z",
-#'   to    = "2025-05-18T00:00:00.000Z",
-#'   ne    = list(lat = 42.0, lon = -85.0),
-#'   sw    = list(lat = 36.0, lon = -96.0),
-#'   limit = 10000
-#' )
-#'
-#' # Supply local times directly using tz - no manual UTC conversion needed.
-#' # from/to are interpreted as America/Chicago local time and converted
-#' # to UTC before the query.
+#' # Filter by bounding box using local times
 #' dets <- get_detections(
 #'   from  = "2025-05-16T00:00:00",
 #'   to    = "2025-05-16T23:59:59",
@@ -119,6 +132,8 @@
 get_detections <- function(from            = NULL,
                            to              = NULL,
                            tz              = NULL,
+                           time_gte        = NULL,
+                           time_lte        = NULL,
                            station_ids     = NULL,
                            station_types   = NULL,
                            species_ids     = NULL,
@@ -145,6 +160,20 @@ get_detections <- function(from            = NULL,
   to   <- normalize_datetime(to,   "to")
 
   # -------------------------------------------------------
+  # Helper: parse "HH:MM" string to integer minutes since midnight
+  # -------------------------------------------------------
+  time_to_minutes <- function(x, arg_name) {
+    if (!grepl("^\\d{1,2}:\\d{2}$", x)) {
+      stop("'", arg_name, "' must be in \"HH:MM\" format (e.g. \"13:00\"). Got: ", x)
+    }
+    parts <- as.integer(strsplit(x, ":")[[1]])
+    if (parts[1] < 0 || parts[1] > 23 || parts[2] < 0 || parts[2] > 59) {
+      stop("'", arg_name, "' is not a valid time. Hours must be 0-23, minutes 0-59. Got: ", x)
+    }
+    as.integer(parts[1] * 60L + parts[2])
+  }
+
+  # -------------------------------------------------------
   # Timezone handling
   # -------------------------------------------------------
   if (!is.null(tz)) {
@@ -154,7 +183,11 @@ get_detections <- function(from            = NULL,
     }
 
     local_to_utc <- function(dt_str, tz) {
-      dt_str <- sub("Z$", "", dt_str)
+      # Strip trailing Z or .000Z so the string is treated as local time,
+      # not UTC. normalize_datetime() always appends .000Z to plain dates,
+      # but when tz is supplied the user means midnight *local* time.
+      dt_str <- sub("\\.\\d+Z$", "", dt_str)  # "2025-03-01T00:00:00.000Z" -> "2025-03-01T00:00:00"
+      dt_str <- sub("Z$", "", dt_str)          # bare Z fallback
       dt <- as.POSIXct(dt_str, tz = tz, format = "%Y-%m-%dT%H:%M:%S")
       if (is.na(dt)) {
         stop("Could not parse datetime string '", dt_str, "' with tz = '", tz, "'. ",
@@ -174,6 +207,18 @@ get_detections <- function(from            = NULL,
       to <- to_utc
     }
 
+    # time_gte/time_lte are always UTC - DST makes local conversion ambiguous
+    if (!is.null(time_gte) || !is.null(time_lte)) {
+      warning(
+        "time_gte and time_lte are always interpreted as UTC regardless of tz. ",
+        "DST transitions make local time-of-day conversion ambiguous over ",
+        "multi-date windows. Convert to UTC manually if needed.",
+        call. = FALSE
+      )
+    }
+    if (!is.null(time_gte)) time_gte <- time_to_minutes(time_gte, "time_gte")
+    if (!is.null(time_lte)) time_lte <- time_to_minutes(time_lte, "time_lte")
+
   } else if (!is.null(from) || !is.null(to)) {
     # Only warn if the string looks like a local time (has a T but no trailing Z
     # and no UTC offset), meaning the user may not have intended UTC.
@@ -189,6 +234,14 @@ get_detections <- function(from            = NULL,
         call. = FALSE
       )
     }
+
+    # Convert time strings to integer minutes (UTC assumed)
+    if (!is.null(time_gte)) time_gte <- time_to_minutes(time_gte, "time_gte")
+    if (!is.null(time_lte)) time_lte <- time_to_minutes(time_lte, "time_lte")
+  } else {
+    # No from/to but time_gte/time_lte may still be set
+    if (!is.null(time_gte)) time_gte <- time_to_minutes(time_gte, "time_gte")
+    if (!is.null(time_lte)) time_lte <- time_to_minutes(time_lte, "time_lte")
   }
 
   # -------------------------------------------------------
@@ -247,6 +300,8 @@ get_detections <- function(from            = NULL,
   if (!is.null(ne))              base_variables$ne             <- list(lat = ne$lat, lon = ne$lon)
   if (!is.null(sw))              base_variables$sw             <- list(lat = sw$lat, lon = sw$lon)
   if (!is.null(station_types))   base_variables$stationTypes   <- as.list(station_types)
+  if (!is.null(time_gte))        base_variables$timeOfDayGte   <- as.integer(time_gte)
+  if (!is.null(time_lte))        base_variables$timeOfDayLte   <- as.integer(time_lte)
 
   # -------------------------------------------------------
   # Build query string dynamically from active variables
@@ -263,7 +318,9 @@ get_detections <- function(from            = NULL,
     probabilityGte = "$probabilityGte: Float",
     probabilityLte = "$probabilityLte: Float",
     ne             = "$ne: InputLocation",
-    sw             = "$sw: InputLocation"
+    sw             = "$sw: InputLocation",
+    timeOfDayGte   = "$timeOfDayGte: Int",
+    timeOfDayLte   = "$timeOfDayLte: Int"
   )
 
   arg_names <- c(
@@ -278,7 +335,9 @@ get_detections <- function(from            = NULL,
     probabilityGte = "probabilityGte: $probabilityGte",
     probabilityLte = "probabilityLte: $probabilityLte",
     ne             = "ne: $ne",
-    sw             = "sw: $sw"
+    sw             = "sw: $sw",
+    timeOfDayGte   = "timeOfDayGte: $timeOfDayGte",
+    timeOfDayLte   = "timeOfDayLte: $timeOfDayLte"
   )
 
   active             <- names(var_types)[names(var_types) %in% names(base_variables)]
@@ -329,6 +388,16 @@ get_detections <- function(from            = NULL,
   }
 
   # -------------------------------------------------------
+  # Helper: parse UTC boundary strings for post-filter
+  # -------------------------------------------------------
+  parse_boundary <- function(x, end_of_day = FALSE) {
+    x <- sub("\\.\\d+Z$", "", x)  # strip .000Z -> "2025-03-01T00:00:00"
+    dt <- as.POSIXct(x, format = "%Y-%m-%dT%H:%M:%S", tz = "UTC")
+    if (end_of_day) dt <- dt + 86399L
+    dt
+  }
+
+  # -------------------------------------------------------
   # Execute first page (with retry)
   # -------------------------------------------------------
   query_exec <- ghql::Query$new()$query('url_link', initial_query)
@@ -369,7 +438,7 @@ get_detections <- function(from            = NULL,
   # Paginate until limit is reached or no more pages
   # -------------------------------------------------------
   page       <- 1
-  page_times <- numeric(0)  # rolling record of seconds per page
+  page_times <- numeric(0)
 
   while (isTRUE(has_next) && (is.null(limit) || sum(sapply(all_pages, nrow)) < limit)) {
 
@@ -391,7 +460,7 @@ get_detections <- function(from            = NULL,
     result <- fetch_page_with_retry(query_exec, page_variables, max_retries = max_retries)
     t1     <- proc.time()[["elapsed"]]
 
-    page_times <- c(page_times, t1 - t0 + 1)  # +1 for the Sys.sleep(1)
+    page_times <- c(page_times, t1 - t0 + 1)
 
     nodes <- result$data$detections$nodes
 
@@ -429,10 +498,11 @@ get_detections <- function(from            = NULL,
 
   # Post-filter to exact requested window (API resolves period to calendar days)
   if (!is.null(from) && !is.null(to)) {
-    from_posix <- as.POSIXct(sub("Z$", "", from), format = "%Y-%m-%dT%H:%M:%S", tz = "UTC")
-    to_posix   <- as.POSIXct(sub("Z$", "", to),   format = "%Y-%m-%dT%H:%M:%S", tz = "UTC")
-    det_posix  <- as.POSIXct(sub("Z$", "", final$timestamp), format = "%Y-%m-%dT%H:%M:%S", tz = "UTC")
-    final      <- final[det_posix >= from_posix & det_posix <= to_posix]
+    from_posix <- parse_boundary(from)
+    to_posix   <- parse_boundary(to, end_of_day = TRUE)
+    det_posix  <- as.POSIXct(gsub("([+-]\\d{2}):(\\d{2})$", "\\1\\2", final$timestamp),
+                             format = "%Y-%m-%dT%H:%M:%S%z", tz = "UTC")
+    final <- final[det_posix >= from_posix & det_posix <= to_posix]
   }
 
   message("Done. Returning ", format(nrow(final), big.mark = ","), " detections.")

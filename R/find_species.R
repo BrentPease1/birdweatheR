@@ -69,10 +69,10 @@ find_species <- function(query, limit = 20) {
   dt <- data.table::as.data.table(nodes)
   data.table::setnames(dt, c("id", "commonName", "scientificName"),
                            c("species_id", "common_name", "scientific_name"))
-  dt
 
   if (nrow(dt) >= limit) {
     message("Results may be truncated: ", nrow(dt), " species returned. ",
             "Use limit = ", limit * 2, " to retrieve more.")
   }
+  dt
 }
