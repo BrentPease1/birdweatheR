@@ -7,7 +7,7 @@
 find_species(query, limit = 20)
 }
 \arguments{
-\item{query}{A search string — common name, scientific name, or partial
+\item{query}{A search string - common name, scientific name, or partial
 match (e.g. "chickadee", "Poecile", "Black-capped")}
 
 \item{limit}{Maximum number of results to return (default: 20)}
