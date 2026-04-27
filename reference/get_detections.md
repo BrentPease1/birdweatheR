@@ -14,6 +14,8 @@ get_detections(
   from = NULL,
   to = NULL,
   tz = NULL,
+  time_gte = NULL,
+  time_lte = NULL,
   station_ids = NULL,
   station_types = NULL,
   species_ids = NULL,
@@ -34,17 +36,17 @@ get_detections(
 
 - from:
 
-  Start datetime as a string in ISO8601 format in UTC (e.g.
-  "2025-01-01T00:00:00.000Z"). Defaults to 24 hours ago if NULL. If `tz`
-  is supplied, this should instead be a local datetime string without a
-  trailing Z (e.g. "2025-05-16T00:00:00") and it will be converted to
-  UTC automatically before the query. Note: the BirdWeather API resolves
-  the period filter to calendar days; sub-day filtering is done by the
-  package.
+  Start date as a string ("YYYY-MM-DD") or full ISO8601 UTC datetime
+  (e.g. "2025-01-01T00:00:00.000Z"). Defaults to 24 hours ago if NULL.
+  If `tz` is supplied, this should instead be a local datetime string
+  without a trailing Z (e.g. "2025-05-16T00:00:00") and it will be
+  converted to UTC automatically before the query. Note: the BirdWeather
+  API resolves the period filter to calendar days; sub-day filtering is
+  done by the package.
 
 - to:
 
-  End datetime as a string in ISO8601 format in UTC (e.g.
+  End date as a string ("YYYY-MM-DD") or full ISO8601 UTC datetime (e.g.
   "2025-01-02T00:00:00.000Z"). Defaults to now if NULL. See `from` for
   local-time usage with `tz`.
 
@@ -57,6 +59,19 @@ get_detections(
   passed to the API as-is and are assumed to already be in UTC. Use
   [`OlsonNames()`](https://rdrr.io/r/base/timezones.html) for valid
   timezone strings.
+
+- time_gte:
+
+  Optional. Filter detections at or after this time of day, as a string
+  in "HH:MM" format (e.g. `"13:00"`). Always interpreted as UTC
+  regardless of the `tz` argument. Applied via the BirdWeather API's
+  `timeOfDayGte` argument (minutes since midnight UTC).
+
+- time_lte:
+
+  Optional. Filter detections at or before this time of day, as a string
+  in "HH:MM" format (e.g. `"15:00"`). Always interpreted as UTC
+  regardless of the `tz` argument. See `time_gte` for details.
 
 - station_ids:
 
@@ -131,8 +146,8 @@ get_detections(
 A flat data.table where each row is one detection with columns: id,
 timestamp, confidence, probability, score, species_id, common_name,
 scientific_name, classification, station_id, station_name, station_type,
-station_timezone, station_country, station_continent, station_state,
-station_location, station_lat, station_lon
+station_country, station_continent, station_state, station_location,
+station_lat, station_lon
 
 ## See also
 
@@ -153,42 +168,48 @@ connect_birdweather()
 
 # Get detections for a date range
 dets <- get_detections(
-  from  = "2025-01-01T00:00:00.000Z",
-  to    = "2025-01-02T00:00:00.000Z",
+  from  = "2025-01-01",
+  to    = "2025-01-02",
   limit = 1000
 )
 
 # Filter by species name
 dets <- get_detections(
-  from          = "2025-01-01T00:00:00.000Z",
-  to            = "2025-01-02T00:00:00.000Z",
+  from          = "2025-01-01",
+  to            = "2025-01-02",
   species_names = "Black-capped Chickadee",
   limit         = 1000
 )
 
+# Filter by time of day (UTC) - only detections between 13:00 and 15:00
+dets <- get_detections(
+  from     = "2025-05-01",
+  to       = "2025-05-31",
+  time_gte = "13:00",
+  time_lte = "15:00",
+  limit    = 1000
+)
+
+# Filter by time of day in local timezone
+dets <- get_detections(
+  from     = "2025-05-01",
+  to       = "2025-05-31",
+  tz       = "America/New_York",
+  time_gte = "13:00",
+  time_lte = "15:00",
+  limit    = 1000
+)
+
 # Filter by continent with confidence threshold
 dets <- get_detections(
-  from           = "2025-01-01T00:00:00.000Z",
-  to             = "2025-01-02T00:00:00.000Z",
+  from           = "2025-01-01",
+  to             = "2025-01-02",
   continents     = "North America",
   confidence_gte = 0.9,
   limit          = 1000
 )
 
-# Filter by bounding box (Missouri/Illinois/Kentucky region)
-# NOTE: from/to are UTC. A "2025-05-12 midnight" in Chicago (CDT, UTC-5)
-# would be "2025-05-12T05:00:00.000Z" — use tz= to avoid manual conversion.
-dets <- get_detections(
-  from  = "2025-05-12T00:00:00.000Z",
-  to    = "2025-05-18T00:00:00.000Z",
-  ne    = list(lat = 42.0, lon = -85.0),
-  sw    = list(lat = 36.0, lon = -96.0),
-  limit = 10000
-)
-
-# Supply local times directly using tz — no manual UTC conversion needed.
-# from/to are interpreted as America/Chicago local time and converted
-# to UTC before the query.
+# Filter by bounding box using local times
 dets <- get_detections(
   from  = "2025-05-16T00:00:00",
   to    = "2025-05-16T23:59:59",

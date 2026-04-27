@@ -413,6 +413,8 @@ Please report issues at:
 
 - [`connect_birdweather()`](https://brentpease1.github.io/birdweatheR/reference/connect_birdweather.md)
   : Connect to the BirdWeather API
+- [`eclipse_env_data`](https://brentpease1.github.io/birdweatheR/reference/eclipse_env_data.md)
+  : Solar Eclipse Environment Sensor Data
 - [`eclipse_light_data`](https://brentpease1.github.io/birdweatheR/reference/eclipse_light_data.md)
   : Solar Eclipse Light Sensor Data
 - [`find_species()`](https://brentpease1.github.io/birdweatheR/reference/find_species.md)

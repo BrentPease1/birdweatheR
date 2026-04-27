@@ -14,7 +14,7 @@ find_species(query, limit = 20)
 
 - query:
 
-  A search string — common name, scientific name, or partial match (e.g.
+  A search string - common name, scientific name, or partial match (e.g.
   "chickadee", "Poecile", "Black-capped")
 
 - limit:

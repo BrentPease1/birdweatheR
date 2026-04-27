@@ -59,6 +59,8 @@ to handle transient 504/server errors mid-pagination.</p>
 <span>  from <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  to <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  tz <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  time_gte <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  time_lte <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  station_ids <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  station_types <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  species_ids <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -80,7 +82,7 @@ to handle transient 504/server errors mid-pagination.</p>
 
 
 <dl><dt id="arg-from">from<a class="anchor" aria-label="anchor" href="#arg-from"></a></dt>
-<dd><p>Start datetime as a string in ISO8601 format in UTC
+<dd><p>Start date as a string ("YYYY-MM-DD") or full ISO8601 UTC datetime
 (e.g. "2025-01-01T00:00:00.000Z"). Defaults to 24 hours ago if NULL.
 If <code>tz</code> is supplied, this should instead be a local datetime string
 without a trailing Z (e.g. "2025-05-16T00:00:00") and it will be
@@ -90,7 +92,7 @@ done by the package.</p></dd>
 
 
 <dt id="arg-to">to<a class="anchor" aria-label="anchor" href="#arg-to"></a></dt>
-<dd><p>End datetime as a string in ISO8601 format in UTC
+<dd><p>End date as a string ("YYYY-MM-DD") or full ISO8601 UTC datetime
 (e.g. "2025-01-02T00:00:00.000Z"). Defaults to now if NULL.
 See <code>from</code> for local-time usage with <code>tz</code>.</p></dd>
 
@@ -102,6 +104,19 @@ and <code>to</code> strings. When supplied, both datetimes are converted to UTC
 before the API query. When NULL (the default), <code>from</code> and <code>to</code>
 are passed to the API as-is and are assumed to already be in UTC. Use
 <code><a href="https://rdrr.io/r/base/timezones.html" class="external-link">OlsonNames()</a></code> for valid timezone strings.</p></dd>
+
+
+<dt id="arg-time-gte">time_gte<a class="anchor" aria-label="anchor" href="#arg-time-gte"></a></dt>
+<dd><p>Optional. Filter detections at or after this time of day,
+as a string in "HH:MM" format (e.g. <code>"13:00"</code>). Always interpreted
+as UTC regardless of the <code>tz</code> argument. Applied via the BirdWeather
+API's <code>timeOfDayGte</code> argument (minutes since midnight UTC).</p></dd>
+
+
+<dt id="arg-time-lte">time_lte<a class="anchor" aria-label="anchor" href="#arg-time-lte"></a></dt>
+<dd><p>Optional. Filter detections at or before this time of day,
+as a string in "HH:MM" format (e.g. <code>"15:00"</code>). Always interpreted
+as UTC regardless of the <code>tz</code> argument. See <code>time_gte</code> for details.</p></dd>
 
 
 <dt id="arg-station-ids">station_ids<a class="anchor" aria-label="anchor" href="#arg-station-ids"></a></dt>
@@ -177,7 +192,7 @@ errors (default: 5). Retries use exponential backoff with jitter.</p></dd>
     <p>A flat data.table where each row is one detection with columns:
 id, timestamp, confidence, probability, score,
 species_id, common_name, scientific_name, classification,
-station_id, station_name, station_type, station_timezone,
+station_id, station_name, station_type,
 station_country, station_continent, station_state, station_location,
 station_lat, station_lon</p>
     </div>
@@ -196,42 +211,48 @@ station_lat, station_lon</p>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Get detections for a date range</span></span></span>
 <span class="r-in"><span><span class="va">dets</span> <span class="op">&lt;-</span> <span class="fu">get_detections</span><span class="op">(</span></span></span>
-<span class="r-in"><span>  from  <span class="op">=</span> <span class="st">"2025-01-01T00:00:00.000Z"</span>,</span></span>
-<span class="r-in"><span>  to    <span class="op">=</span> <span class="st">"2025-01-02T00:00:00.000Z"</span>,</span></span>
+<span class="r-in"><span>  from  <span class="op">=</span> <span class="st">"2025-01-01"</span>,</span></span>
+<span class="r-in"><span>  to    <span class="op">=</span> <span class="st">"2025-01-02"</span>,</span></span>
 <span class="r-in"><span>  limit <span class="op">=</span> <span class="fl">1000</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Filter by species name</span></span></span>
 <span class="r-in"><span><span class="va">dets</span> <span class="op">&lt;-</span> <span class="fu">get_detections</span><span class="op">(</span></span></span>
-<span class="r-in"><span>  from          <span class="op">=</span> <span class="st">"2025-01-01T00:00:00.000Z"</span>,</span></span>
-<span class="r-in"><span>  to            <span class="op">=</span> <span class="st">"2025-01-02T00:00:00.000Z"</span>,</span></span>
+<span class="r-in"><span>  from          <span class="op">=</span> <span class="st">"2025-01-01"</span>,</span></span>
+<span class="r-in"><span>  to            <span class="op">=</span> <span class="st">"2025-01-02"</span>,</span></span>
 <span class="r-in"><span>  species_names <span class="op">=</span> <span class="st">"Black-capped Chickadee"</span>,</span></span>
 <span class="r-in"><span>  limit         <span class="op">=</span> <span class="fl">1000</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Filter by time of day (UTC) - only detections between 13:00 and 15:00</span></span></span>
+<span class="r-in"><span><span class="va">dets</span> <span class="op">&lt;-</span> <span class="fu">get_detections</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  from     <span class="op">=</span> <span class="st">"2025-05-01"</span>,</span></span>
+<span class="r-in"><span>  to       <span class="op">=</span> <span class="st">"2025-05-31"</span>,</span></span>
+<span class="r-in"><span>  time_gte <span class="op">=</span> <span class="st">"13:00"</span>,</span></span>
+<span class="r-in"><span>  time_lte <span class="op">=</span> <span class="st">"15:00"</span>,</span></span>
+<span class="r-in"><span>  limit    <span class="op">=</span> <span class="fl">1000</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Filter by time of day in local timezone</span></span></span>
+<span class="r-in"><span><span class="va">dets</span> <span class="op">&lt;-</span> <span class="fu">get_detections</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  from     <span class="op">=</span> <span class="st">"2025-05-01"</span>,</span></span>
+<span class="r-in"><span>  to       <span class="op">=</span> <span class="st">"2025-05-31"</span>,</span></span>
+<span class="r-in"><span>  tz       <span class="op">=</span> <span class="st">"America/New_York"</span>,</span></span>
+<span class="r-in"><span>  time_gte <span class="op">=</span> <span class="st">"13:00"</span>,</span></span>
+<span class="r-in"><span>  time_lte <span class="op">=</span> <span class="st">"15:00"</span>,</span></span>
+<span class="r-in"><span>  limit    <span class="op">=</span> <span class="fl">1000</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Filter by continent with confidence threshold</span></span></span>
 <span class="r-in"><span><span class="va">dets</span> <span class="op">&lt;-</span> <span class="fu">get_detections</span><span class="op">(</span></span></span>
-<span class="r-in"><span>  from           <span class="op">=</span> <span class="st">"2025-01-01T00:00:00.000Z"</span>,</span></span>
-<span class="r-in"><span>  to             <span class="op">=</span> <span class="st">"2025-01-02T00:00:00.000Z"</span>,</span></span>
+<span class="r-in"><span>  from           <span class="op">=</span> <span class="st">"2025-01-01"</span>,</span></span>
+<span class="r-in"><span>  to             <span class="op">=</span> <span class="st">"2025-01-02"</span>,</span></span>
 <span class="r-in"><span>  continents     <span class="op">=</span> <span class="st">"North America"</span>,</span></span>
 <span class="r-in"><span>  confidence_gte <span class="op">=</span> <span class="fl">0.9</span>,</span></span>
 <span class="r-in"><span>  limit          <span class="op">=</span> <span class="fl">1000</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Filter by bounding box (Missouri/Illinois/Kentucky region)</span></span></span>
-<span class="r-in"><span><span class="co"># NOTE: from/to are UTC. A "2025-05-12 midnight" in Chicago (CDT, UTC-5)</span></span></span>
-<span class="r-in"><span><span class="co"># would be "2025-05-12T05:00:00.000Z" — use tz= to avoid manual conversion.</span></span></span>
-<span class="r-in"><span><span class="va">dets</span> <span class="op">&lt;-</span> <span class="fu">get_detections</span><span class="op">(</span></span></span>
-<span class="r-in"><span>  from  <span class="op">=</span> <span class="st">"2025-05-12T00:00:00.000Z"</span>,</span></span>
-<span class="r-in"><span>  to    <span class="op">=</span> <span class="st">"2025-05-18T00:00:00.000Z"</span>,</span></span>
-<span class="r-in"><span>  ne    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>lat <span class="op">=</span> <span class="fl">42.0</span>, lon <span class="op">=</span> <span class="op">-</span><span class="fl">85.0</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  sw    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>lat <span class="op">=</span> <span class="fl">36.0</span>, lon <span class="op">=</span> <span class="op">-</span><span class="fl">96.0</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  limit <span class="op">=</span> <span class="fl">10000</span></span></span>
-<span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Supply local times directly using tz — no manual UTC conversion needed.</span></span></span>
-<span class="r-in"><span><span class="co"># from/to are interpreted as America/Chicago local time and converted</span></span></span>
-<span class="r-in"><span><span class="co"># to UTC before the query.</span></span></span>
+<span class="r-in"><span><span class="co"># Filter by bounding box using local times</span></span></span>
 <span class="r-in"><span><span class="va">dets</span> <span class="op">&lt;-</span> <span class="fu">get_detections</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  from  <span class="op">=</span> <span class="st">"2025-05-16T00:00:00"</span>,</span></span>
 <span class="r-in"><span>  to    <span class="op">=</span> <span class="st">"2025-05-16T23:59:59"</span>,</span></span>
