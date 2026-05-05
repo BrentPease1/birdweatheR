@@ -27,6 +27,7 @@ alongside acoustic detections.
 ### Installation
 
 ``` r
+
 # Install from GitHub
 # install.packages("devtools")
 devtools::install_github("BrentPease1/birdweatheR")
@@ -38,6 +39,7 @@ All functions require an active API connection. No API KEY required.
 Establish a connection at the start of each session:
 
 ``` r
+
 library(birdweatheR)
 connect_birdweather()
 ```
@@ -60,6 +62,7 @@ returns a single-row summary of detections, species, and stations for a
 given time period:
 
 ``` r
+
 get_counts(
   from = "2025-05-01T00:00:00.000Z",
   to   = "2025-05-02T00:00:00.000Z"
@@ -79,6 +82,7 @@ returns the most frequently detected species for a given period, with a
 breakdown of detection confidence:
 
 ``` r
+
 get_top_species(
   limit = 10,
   from  = "2025-05-01T00:00:00.000Z",
@@ -134,6 +138,7 @@ This function allows for complete and partial matches, even including
 wildcards (e.g., ’whip\*’)
 
 ``` r
+
 # Search by common name
 find_species("Wood Thrush")
 
@@ -153,6 +158,7 @@ examine the American Robin (*Turdus migratorius*) — a species well known
 for its early dawn and late evening chorus:
 
 ``` r
+
 robin_id <- find_species("American Robin")$species_id
 
 robin_tod <- get_tod_counts(
@@ -163,6 +169,7 @@ robin_tod <- get_tod_counts(
 ```
 
 ``` r
+
 library(ggplot2)
 
 ggplot(robin_tod, aes(x = hour, y = count)) +
@@ -183,6 +190,7 @@ varia*) shows the power of continuous detections, creating a contrast
 with traditional sampling techniques and other avian databases:
 
 ``` r
+
 baow_id <- find_species("Strix varia")$species_id
 
 baow_tod <- get_tod_counts(
@@ -193,6 +201,7 @@ baow_tod <- get_tod_counts(
 ```
 
 ``` r
+
 library(ggplot2)
 
 ggplot(baow_tod, aes(x = hour, y = count)) +
@@ -220,6 +229,7 @@ species. This is useful for visualizing seasonal trends without
 downloading raw detections:
 
 ``` r
+
 daily <- get_daily_detection_counts( #ART 20 seconds
   from       = "2025-05-01T00:00:00.000Z",
   to         = "2025-05-31T00:00:00.000Z",
@@ -262,6 +272,7 @@ Countries \* BirdNET Confidence Scores \* Bounding Box \* Download
 Limits (e.g., 1000 rows)
 
 ``` r
+
 # Get detections for a date range
 detections <- get_detections(
   from  = "2025-01-01T00:00:00.000Z",
@@ -345,6 +356,7 @@ sound pressure level readings for a PUC station over a specified time
 window:
 
 ``` r
+
 env_data <- get_environment_data(
   station_id = "1733",
   from       = "2025-05-01T00:00:00.000Z",
@@ -360,6 +372,7 @@ broadband clear light, near-infrared, and individual spectral bands
 (f1–f8):
 
 ``` r
+
 light_data <- get_light_data(
   station_id = "1733",
   from       = "2025-05-01T00:00:00.000Z",

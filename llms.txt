@@ -15,6 +15,7 @@ behavioral responses to weather events and solar eclipses.
 You can install the development version of birdweatheR from GitHub:
 
 ``` r
+
 # install.packages("devtools")
 devtools::install_github("BrentPease1/birdweatheR")
 ```
@@ -27,6 +28,7 @@ phenology, weather events, and the 2024 total solar eclipse — see the
 vignette](https://github.com/BrentPease1/birdweatheR/blob/main/vignettes/getting-started.Rmd).
 
 ``` r
+
 library(birdweatheR)
 
 # Establish connection to the BirdWeather API — required once per session
@@ -44,6 +46,7 @@ downstream functions.
 A typical session follows this pattern:
 
 ``` r
+
 library(birdweatheR)
 
 # 1. Connect
@@ -85,6 +88,7 @@ Establishes a connection to the BirdWeather API. Must be called once per
 session before using any other function. No API key required.
 
 ``` r
+
 connect_birdweather()
 ```
 
@@ -97,6 +101,7 @@ stations for a given time period. Useful for a quick sense of the
 platform’s scale.
 
 ``` r
+
 get_counts(
   from = "2025-05-01T00:00:00.000Z",
   to   = "2025-05-02T00:00:00.000Z"
@@ -112,6 +117,7 @@ ranked by total detection count. Includes a certainty breakdown (almost
 certain, very likely, unlikely, uncertain).
 
 ``` r
+
 # Top 10 species (default)
 get_top_species(
   from = "2025-05-01T00:00:00.000Z",
@@ -136,6 +142,7 @@ of interest before pulling detections. Supports filtering by bounding
 box and time period.
 
 ``` r
+
 # Pull the first 100 stations
 stations <- get_stations(limit = 100)
 
@@ -157,6 +164,7 @@ matches and wildcards. Useful for exploring the BirdWeather species
 database and retrieving species IDs before pulling detections.
 
 ``` r
+
 # Search by common name
 find_species("chickadee")
 
@@ -181,6 +189,7 @@ or IDs, continents, countries, BirdNET confidence threshold, bounding
 box, and download limit.
 
 ``` r
+
 # Get detections for a date range
 detections <- get_detections(
   from  = "2025-01-01T00:00:00.000Z",
@@ -247,6 +256,7 @@ species-level breakdown. Also supports filtering by station IDs or
 species IDs.
 
 ``` r
+
 # Daily totals
 daily <- get_daily_detection_counts(
   from = "2025-05-01T00:00:00.000Z",
@@ -270,6 +280,7 @@ vector of species IDs. Most useful for joining readable names onto
 output from `get_daily_detection_counts(by_species = TRUE)`.
 
 ``` r
+
 # Look up specific species
 get_species_info(ids = c("305", "721", "1004"))
 
@@ -296,6 +307,7 @@ a given species. Useful for visualizing diel activity patterns such as
 the dawn chorus or nocturnal behavior.
 
 ``` r
+
 # American Robin time-of-day activity
 robin_id  <- find_species("American Robin")$species_id
 
@@ -328,6 +340,7 @@ temperature, humidity, barometric pressure, air quality, eCO2, VOC, and
 sound pressure level.
 
 ``` r
+
 env <- get_environment_data(
   station_id = "1733",
   from       = "2025-05-01T00:00:00.000Z",
@@ -360,6 +373,7 @@ alongside bird activity — including responses to astronomical events
 like solar eclipses.
 
 ``` r
+
 light <- get_light_data(
   station_id = "1733",
   from       = "2025-05-01T00:00:00.000Z",
@@ -385,6 +399,7 @@ If you use this package in your research, please cite both the package
 and BirdWeather:
 
 ``` r
+
 citation("birdweatheR")
 ```
 

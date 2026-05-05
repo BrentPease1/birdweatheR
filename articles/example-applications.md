@@ -11,6 +11,7 @@ Started
 vignette](https://brentpease1.github.io/birdweatheR/articles/getting-started.md).
 
 ``` r
+
 library(birdweatheR)
 library(data.table)
 library(ggplot2)
@@ -40,6 +41,7 @@ migration (March–May 2025), filtered to detections with confidence ≥
 0.6.
 
 ``` r
+
 library(birdweatheR)
 library(data.table)
 library(ggplot2)
@@ -48,6 +50,7 @@ data(woth)
 ```
 
 ``` r
+
 # To reproduce this dataset from the API:
 # connect_birdweather()
 # woth_id <- find_species("Wood Thrush")$species_id
@@ -66,6 +69,7 @@ northward, the median latitude of detections shifts from roughly 15°N in
 early March to over 40°N by mid-May:
 
 ``` r
+
 woth[, date := as.Date(timestamp)]
 
 median_lat <- woth[, .(median_lat = median(station_lat, na.rm = TRUE)),
@@ -127,6 +131,7 @@ For each station, we construct a complete grid of 30-minute intervals
 and mark each interval as a detection (1) or non-detection (0):
 
 ``` r
+
 library(lubridate)
 library(dplyr)
 
@@ -198,6 +203,7 @@ The HFI raster (Venter et al. 2016) is downloaded once via `geodata` and
 values are extracted at each PUC station location using `terra`:
 
 ``` r
+
 library(terra)
 library(geodata)
 
@@ -225,6 +231,7 @@ from the population mean. Model fitting takes several minutes depending
 on hardware:
 
 ``` r
+
 library(GLMMadaptive)
 
 m1 <-  GLMMadaptive::mixed_model(
@@ -248,6 +255,7 @@ whether urbanization alters the shape or timing of the diel activity
 pattern.
 
 ``` r
+
 newdat <- expand.grid(
   time = seq(0, 48, length.out = 96), hfi = quantile(final$hfi, probs = c(0.1, 0.9))
 )
@@ -309,11 +317,13 @@ an eclipse path bounding box during April 8, 2024. The
 from those same stations.
 
 ``` r
+
 data(total_eclipse)
 data(eclipse_light_data)
 ```
 
 ``` r
+
 # To reproduce from the API:
 # connect_birdweather()
 # total_eclipse <- get_detections(
@@ -339,6 +349,7 @@ defined here as stations where broadband light levels dropped below 10%
 of their morning baseline during the eclipse window:
 
 ``` r
+
 eclipse_light_data[, datetime := as.POSIXct(timestamp,
                     format = "%Y-%m-%dT%H:%M:%S", tz = "America/Chicago")]
 total_eclipse[, datetime := as.POSIXct(timestamp,
@@ -371,6 +382,7 @@ highly vocal diurnal species with peak activity during midday — making
 it a sensitive indicator of unusual light changes:
 
 ``` r
+
 # 5-minute bin helper
 bin5 <- function(dt) {
   as.POSIXct(
@@ -406,6 +418,7 @@ det_bins <- eclipse_day_dets[,
 ```
 
 ``` r
+
 library(cowplot)
 
 p1 <- ggplot(det_bins, aes(x = bin, y = det_count)) +
@@ -467,11 +480,13 @@ stations in the St. Louis metro area during May 12–18, 2025. The
 readings from those same stations.
 
 ``` r
+
 data(stl_storm_May2025)
 data(stl_env_May2025)
 ```
 
 ``` r
+
 # To reproduce from the API:
 # connect_birdweather()
 # stl_storm_may2025 <- get_detections(
@@ -497,6 +512,7 @@ coinciding with a spike in acoustic detections around the time of EF3
 touchdown:
 
 ``` r
+
 # Parse detection timestamps
 stl_storm_May2025[, datetime := as.POSIXct(timestamp,
                     format = "%Y-%m-%dT%H:%M:%S", tz = "America/Chicago")]
