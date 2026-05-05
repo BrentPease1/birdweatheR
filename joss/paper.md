@@ -1,6 +1,5 @@
 ---
-title: 'birdweatheR: An R package for accessing and analyzing BirdWeather acoustic
-  and environmental data'
+title: 'birdweatheR: An R package for accessing and analyzing BirdWeather acoustic and environmental data'
 tags:
 - bioacoustics
 - participatory sciences
