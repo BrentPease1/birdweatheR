@@ -85,8 +85,15 @@ total detections only. If TRUE returns one row per species per day.</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A data.table. When by_species = FALSE: date, day_of_year, daily_total.
-When by_species = TRUE: date, day_of_year, daily_total, species_id, count.</p>
+    <p>A data.table. When by_species = FALSE: station_id, date, day_of_year, daily_total.
+When by_species = TRUE: station_id, date, day_of_year, daily_total, species_id, count.
+If station_ids is NULL, station_id column is omitted.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>When <code>station_ids</code> is supplied, the function issues one API call per
+station and tags every row with <code>station_id</code> so results can be
+distinguished. Without <code>station_ids</code> the column is omitted.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
@@ -106,11 +113,12 @@ When by_species = TRUE: date, day_of_year, daily_total, species_id, count.</p>
 <span class="r-in"><span>  to   <span class="op">=</span> <span class="st">"2025-05-07T00:00:00.000Z"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Species-level breakdown</span></span></span>
+<span class="r-in"><span><span class="co"># Species-level breakdown, tagged by station</span></span></span>
 <span class="r-in"><span><span class="fu">get_daily_detection_counts</span><span class="op">(</span></span></span>
-<span class="r-in"><span>  from       <span class="op">=</span> <span class="st">"2025-05-01T00:00:00.000Z"</span>,</span></span>
-<span class="r-in"><span>  to         <span class="op">=</span> <span class="st">"2025-05-07T00:00:00.000Z"</span>,</span></span>
-<span class="r-in"><span>  by_species <span class="op">=</span> <span class="cn">TRUE</span></span></span>
+<span class="r-in"><span>  from        <span class="op">=</span> <span class="st">"2025-05-01T00:00:00.000Z"</span>,</span></span>
+<span class="r-in"><span>  to          <span class="op">=</span> <span class="st">"2025-05-07T00:00:00.000Z"</span>,</span></span>
+<span class="r-in"><span>  station_ids <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"123"</span>, <span class="st">"456"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  by_species  <span class="op">=</span> <span class="cn">TRUE</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 </code></pre></div>

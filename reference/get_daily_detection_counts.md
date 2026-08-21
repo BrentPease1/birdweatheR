@@ -41,9 +41,16 @@ get_daily_detection_counts(
 
 ## Value
 
-A data.table. When by_species = FALSE: date, day_of_year, daily_total.
-When by_species = TRUE: date, day_of_year, daily_total, species_id,
-count.
+A data.table. When by_species = FALSE: station_id, date, day_of_year,
+daily_total. When by_species = TRUE: station_id, date, day_of_year,
+daily_total, species_id, count. If station_ids is NULL, station_id
+column is omitted.
+
+## Details
+
+When `station_ids` is supplied, the function issues one API call per
+station and tags every row with `station_id` so results can be
+distinguished. Without `station_ids` the column is omitted.
 
 ## See also
 
@@ -66,11 +73,12 @@ get_daily_detection_counts(
   to   = "2025-05-07T00:00:00.000Z"
 )
 
-# Species-level breakdown
+# Species-level breakdown, tagged by station
 get_daily_detection_counts(
-  from       = "2025-05-01T00:00:00.000Z",
-  to         = "2025-05-07T00:00:00.000Z",
-  by_species = TRUE
+  from        = "2025-05-01T00:00:00.000Z",
+  to          = "2025-05-07T00:00:00.000Z",
+  station_ids = c("123", "456"),
+  by_species  = TRUE
 )
 } # }
 ```
