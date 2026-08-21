@@ -176,14 +176,14 @@ get_daily_detection_counts <- function(from        = NULL,
       if (stations_remaining > 0) {
         avg_time <- mean(page_times)
         eta_secs <- stations_remaining * avg_time
-        eta_str  <- paste0(" — ~", format_seconds(eta_secs), " remaining")
+        eta_str  <- paste0(" - ~", format_seconds(eta_secs), " remaining")
       } else {
         eta_str <- ""
       }
 
       message("  Station ", i, "/", n_stations,
               " (", all_station_ids[i], ")",
-              " — ", format(nrow(result_list[[i]]), big.mark = ","), " rows",
+              " - ", format(nrow(result_list[[i]]), big.mark = ","), " rows",
               eta_str)
     }
 
@@ -206,7 +206,7 @@ get_daily_detection_counts <- function(from        = NULL,
   }
 
   # ---------------------------------------------------------------------------
-  # No station_ids — single call, no station_id column
+  # No station_ids - single call, no station_id column
   # ---------------------------------------------------------------------------
   out <- .fetch_one(station_id = NULL)
 

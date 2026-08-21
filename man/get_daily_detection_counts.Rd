@@ -25,13 +25,19 @@ get_daily_detection_counts(
 total detections only. If TRUE returns one row per species per day.}
 }
 \value{
-A data.table. When by_species = FALSE: date, day_of_year, daily_total.
-When by_species = TRUE: date, day_of_year, daily_total, species_id, count.
+A data.table. When by_species = FALSE: station_id, date, day_of_year, daily_total.
+When by_species = TRUE: station_id, date, day_of_year, daily_total, species_id, count.
+If station_ids is NULL, station_id column is omitted.
 }
 \description{
 Returns daily detection counts for a given time period. By default returns
 one row per day with total detections. Optionally returns species-level
 breakdown with one row per species per day.
+}
+\details{
+When \code{station_ids} is supplied, the function issues one API call per
+station and tags every row with \code{station_id} so results can be
+distinguished. Without \code{station_ids} the column is omitted.
 }
 \examples{
 \dontrun{
@@ -43,11 +49,12 @@ get_daily_detection_counts(
   to   = "2025-05-07T00:00:00.000Z"
 )
 
-# Species-level breakdown
+# Species-level breakdown, tagged by station
 get_daily_detection_counts(
-  from       = "2025-05-01T00:00:00.000Z",
-  to         = "2025-05-07T00:00:00.000Z",
-  by_species = TRUE
+  from        = "2025-05-01T00:00:00.000Z",
+  to          = "2025-05-07T00:00:00.000Z",
+  station_ids = c("123", "456"),
+  by_species  = TRUE
 )
 }
 }

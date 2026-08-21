@@ -22,8 +22,10 @@ Suggests:
     knitr,
     rmarkdown,
     ggplot2,
-    cowplot
+    cowplot,
+    testthat (>= 3.0.0)
 Depends: 
     R (>= 3.5)
 LazyData: true
 LazyDataCompression: xz
+Config/testthat/edition: 3
