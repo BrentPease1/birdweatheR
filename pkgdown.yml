@@ -1,10 +1,10 @@
 pandoc: 3.8.3
-pkgdown: 2.2.0
+pkgdown: 2.2.1
 pkgdown_sha: ~
 articles:
   example-applications: example-applications.html
   getting-started: getting-started.html
-last_built: 2026-05-05T19:10Z
+last_built: 2026-08-21T13:48Z
 urls:
   reference: https://brentpease1.github.io/birdweatheR/reference
   article: https://brentpease1.github.io/birdweatheR/articles
