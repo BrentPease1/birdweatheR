@@ -1,4 +1,4 @@
 # License
 
     YEAR: 2026
-    COPYRIGHT HOLDER: birdweather authors
+    COPYRIGHT HOLDER: birdweatheR authors
